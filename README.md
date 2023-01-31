@@ -14,7 +14,7 @@ source mp_env/bin/activate
 #Install MediaPipe
 pip install mediapipe
 
-# Download the Pose Landmarks Model
+# Download the Pose Landmarks Model and Put it a folder called models
 curl -LJO https://github.com/google/mediapipe/releases/download/v0.8.0/pose_landmarks_2d.tflite
-mv pose_landmarks_2d.tflite 
+## Move the tflite (Model file) to the folder models.
 mv pose_landmarks_2d.tflite models/
