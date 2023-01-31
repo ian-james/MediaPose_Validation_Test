@@ -1,14 +1,13 @@
 # MediaPose_Validation_Test
 Mediapose validation project (Starting from Demo)
 
+# Setup Virtual Environment
+ (This keeps your computer settings safe and makes it easy to add new projects.) 
+ python3 -m venv mp_env
+ cd mp_env
+ source mp_env/bin/activate
 
-#Setup Virtual Environment
-#Create a virtual environment (This keeps your computer settings safe.) 
-#&& starts a second command to active the virtual environment.
-python3 -m venv mp_env && source mp_env/bin/activate
-
-
-#To re-activate a virtual environment use
+#To re-activate a virtual environment (if you've closed the environment.)
 source mp_env/bin/activate
 
 #Install MediaPipe
