@@ -43,9 +43,14 @@ pip install -r requirements.txt
 ## Alternatively: If you need to install only MediaPipe
 pip install mediapipe
 
-# Step 3: Setup MediaPipe Models (Optional if model does not exist in models folder
+# Step 3: Setup MediaPipe Models (Optional if model does not exist in models folder)
+There are three options lite,medium, and heavy. They indicate the accuracy level. 
+Our current model is from 0.8.0 and should be called pose-landmarks_2d.tflite.
+
+
 ## Option 1) Download the Pose Landmarks Model located it at the below addres and put it a folder called models
-* https://github.com/google/mediapipe/releases/download/v0.8.0/pose_landmarks_2d.tflite
+
+* https://google.github.io/mediapipe/solutions/models 
 
 Alternatively on Linux, this file can be directly downloaded and placed in the project folder within the folder called models/
 curl -LJO https://github.com/google/mediapipe/releases/download/v0.8.0/pose_landmarks_2d.tflite
