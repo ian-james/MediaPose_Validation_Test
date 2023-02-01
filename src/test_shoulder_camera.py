@@ -313,8 +313,9 @@ with mp_pose.Pose(
         display_shoulder(f_image,x,height-50,"extension", shoulder_info['extension_right'])
         display_shoulder(f_image,x,height-70,"internal_rotation", shoulder_info['internal_rotation_right'])
         display_shoulder(f_image,x,height-90,"external_rotation", shoulder_info['external_rotation_right'])
-        print("***\n\n"
- )   except:
+        print("***\n\n")
+    except:
+        print("FAILED SHOULDER INFORMATION")
         pass
 
     # Flip the image horizontally for a selfie-view display.
