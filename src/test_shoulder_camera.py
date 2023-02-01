@@ -206,6 +206,25 @@ def get_shoulder_info(landmarks):
         }
 
 
+# Function to identify landmarks we are not tracking.
+# Return List of PoseLandmark Enum
+def get_non_tracked_landmarks(landmarks):
+    TOTAL_LANDMARKS = 33
+    return [ x for x in range(0,TOTAL_LANDMARKS) if x not in landmarks ]
+
+# Default: Selects Left than Right positions of (shoulder, elbow, wrist,  hip)
+def get_landmark_ids_list():
+    return [
+    PoseLandmark.LEFT_SHOULDER,
+    PoseLandmark.RIGHT_SHOULDER,
+    PoseLandmark.LEFT_ELBOW,
+    PoseLandmark.RIGHT_ELBOW,
+    PoseLandmark.LEFT_WRIST,
+    PoseLandmark.RIGHT_WRIST,
+    PoseLandmark.LEFT_HIP,
+    PoseLandmark.RIGHT_HIP
+    ]
+
 # Retrieve a single landmark from the MediaPipe Landmarks
 def get_landmark(landmarks, landmark_id):
     for idx, landmark in enumerate(landmarks.landmark):
@@ -216,7 +235,7 @@ def get_landmark(landmarks, landmark_id):
 # Select Multiple landmarks from Mediapose
 # Default: Selects Left than Right positions of (shoulder, elbow, wrist,  hip)
 # TODO: Magic Numbers changed to PoseLandmark(Enum)
-def get_landmarks(landmarks, landmark_list=[12, 14, 16, 24, 11, 13, 15, 23]):
+def get_landmarks(landmarks, landmark_list=get_landmark_ids_list()):
     return [landmark for idx, landmark in enumerate(landmarks.landmark) if idx in landmark_list]
 
 # Helpler function to display shoulder text information.
@@ -224,6 +243,11 @@ def display_shoulder(image,x,y,shoulder_name, angle):
     font = cv2.FONT_HERSHEY_SIMPLEX
     print("Shoulder ", shoulder_name, " = ", angle)
     cv2.putText(image, f"{shoulder_name}: {angle:.2f}", (x, y), font, 0.5, (255, 255, 255), 2, cv2.LINE_AA)
+
+def hide_landmarks(landmarks, hide_ids):
+    for idx, landmark in enumerate(landmarks):
+        if idx in hide_ids:
+            landmark.visibility = 0
 
 ## Start of the main program or loop
 done = True
@@ -248,6 +272,9 @@ with mp_pose.Pose(
     # Draw the pose annotation on the image.
     image.flags.writeable = True
     image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
+
+    if(results.pose_landmarks):
+        hide_landmarks(results.pose_landmarks.landmark,get_non_tracked_landmarks(get_landmark_ids_list()))
 
     # Draw all landmarks ( TODO: This might become more shoulder based.)
     mp_drawing.draw_landmarks(
