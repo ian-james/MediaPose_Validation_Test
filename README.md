@@ -11,6 +11,9 @@ https://github.com/google/mediapipe
 Objective:
 Our research performs a comparative analysis to validate the accuracy levels occuring in MediaPipe. Our analysis will evaluate the performance between Dartfish, Mediapipe, and higher-end solutions. Our goal is to identify inexpensive telehealth options which uphold the high-levels of standards produced within clinics or more expensive setups.
 
+# Download Stage 
+ Go to Code and click download Zip file.
+
 # Setup Stages
  * Setup Virtual Environment - (This keeps your computer settings safe and makes it easy to add new projects.) 
  * Active Virtual Environment
