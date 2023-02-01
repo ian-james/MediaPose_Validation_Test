@@ -11,8 +11,13 @@ https://github.com/google/mediapipe
 Objective:
 Our research performs a comparative analysis to validate the accuracy levels occuring in MediaPipe. Our analysis will evaluate the performance between Dartfish, Mediapipe, and higher-end solutions. Our goal is to identify inexpensive telehealth options which uphold the high-levels of standards produced within clinics or more expensive setups.
 
-# Download Stage 
- Go to Code and click download Zip file.
+# Pre-Req and Download Stage 
+  If you don't have Python version 3.9 or higher install on your machine, please download.
+  
+  ## GitHub Download
+  You can download the entire project for this code by going to the Code button on right of this section.
+  There you can download or clone (for developers) the project for review.
+  
 
 # Setup Stages
  * Setup Virtual Environment - (This keeps your computer settings safe and makes it easy to add new projects.) 
@@ -32,13 +37,13 @@ Our research performs a comparative analysis to validate the accuracy levels occ
 ## To re-activate a virtual environment (if you've closed the environment.)
 source mp_env/bin/activate
 
-# Step 2: Install requirements - This will include mediapipe
+# Step 2: Install requirements - This includes all requirements for this project (including mediapipe)
 pip install -r requirements.txt
 
 ## Alternatively: If you need to install only MediaPipe
 pip install mediapipe
 
-# Step 3: Setup MediaPipe Models
+# Step 3: Setup MediaPipe Models (Optional if model does not exist in models folder
 ## Option 1) Download the Pose Landmarks Model located it at the below addres and put it a folder called models
 * https://github.com/google/mediapipe/releases/download/v0.8.0/pose_landmarks_2d.tflite
 
