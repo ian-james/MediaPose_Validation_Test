@@ -26,7 +26,6 @@ from landmark_helpers import *
 # Error Result: An empty object
 # Success Result: A GH-Joint Estimate Position (Landmark)
 def calc_shoulder_gh_joint(shoulder, hip):
-    shoulder_gh = {}
     try:
         x = (shoulder.x + hip.x) / 2
         y = (shoulder.y + hip.y) / 2
@@ -36,9 +35,10 @@ def calc_shoulder_gh_joint(shoulder, hip):
                                     (shoulder.z + z)/2
         )
         #print("Shoulder_GH",shoulder_gh)
+        return shoulder_gh
     except:
         print("Could not calculate the shoulder GH Joint.")
-    return shoulder_gh
+    return None
 
 # Function: calc_shoulder_center
 # Intention: Estimate the center position between the two shoulders.
@@ -47,16 +47,17 @@ def calc_shoulder_gh_joint(shoulder, hip):
 # Error Result: An empty object
 # Success Result: The center of the two shoudlers Estimate Position (Landmark)
 def calc_shoulder_center(shoulder_left, shoulder_right):
-    shoulder_center = {}
     try:
         shoulder_center = Landmark( (shoulder_left.x + shoulder_right.x) / 2,
                                     (shoulder_left.y + shoulder_right.y) / 2,
                                     (shoulder_left.z + shoulder_right.z) / 2
         )
         #print("Shoulder_Center",shoulder_center)
+        return shoulder_center
     except:
         print("Could not calculate the shoulder center.")
-    return shoulder_center
+    return None
+
 
 def calc_shoulder_flexion(elbow, shoulder_center, hip):
     """
@@ -83,6 +84,9 @@ def calc_shoulder_flexion(elbow, shoulder_center, hip):
         elbow_vector_length = math.sqrt(elbow_vector[0] ** 2 + elbow_vector[1] ** 2)
         shoulder_center_vector_length = math.sqrt(shoulder_center_vector[0] ** 2 + shoulder_center_vector[1] ** 2)
 
+        if elbow_vector_length == 0 or shoulder_center_vector_length == 0:
+            return None
+
         # Calculate the cosine of the angle between the two vectors
         cosine_angle = dot_product / (elbow_vector_length * shoulder_center_vector_length)
 
@@ -91,7 +95,7 @@ def calc_shoulder_flexion(elbow, shoulder_center, hip):
         return shoulder_flexion
     except Exception as e:
         print("An error occurred while trying to calculate shoulder flexion:", e)
-    return {}
+    return None 
 
 # Function: calc_shoulder_abduction
 # Intention: Calculates the shoulder abduction based on the elbow and shoulder position.
@@ -100,14 +104,14 @@ def calc_shoulder_flexion(elbow, shoulder_center, hip):
 # Error Result: An empty object
 # Success Result: An estimate of the shoulder abduction
 def calc_shoulder_abduction(elbow, shoulder_center):
-    shoulder_abduction = {}
     try:
         # Suggest Wrist - Elbow
         shoulder_abduction =  math.degrees(math.atan2(elbow.y - shoulder_center.y, elbow.x - shoulder_center.x))
         #print("Calculated SA", shoulder_abduction)
+        return shoulder_abduction
     except Exception as e:
         print("An error occurred while trying to calculate shoulder abudction:", e)
-    return shoulder_abduction
+    return None
 
 # Function: calc_shoulder_extension
 # Intention: Calculates the shoulder extension based on the elbow and shoulder position.
@@ -116,14 +120,14 @@ def calc_shoulder_abduction(elbow, shoulder_center):
 # Error Result: An empty object
 # Success Result: An estimate of the shoulder extension
 def calc_shoulder_extension(elbow, shoulder_center):
-    shoulder_extension = {}
     try:
         # Calculate shoulder extension
         shoulder_extension = 180 - math.degrees(math.atan2(shoulder_center.x - elbow.x, shoulder_center.y - elbow.y))
         #print("CALCULATED SE", shoulder_extension)
+        return shoulder_extension
     except Exception as e:
         print("An error occurred while trying to calculate shoulder flexion:", e)
-    return shoulder_extension
+    return None
 
 # Function: calc_shoulder_internal_rotation
 # Intention: Calculates the internal rotation based on the wrist and shoulder
@@ -132,14 +136,14 @@ def calc_shoulder_extension(elbow, shoulder_center):
 # Error Result: An empty object
 # Success Result: An estimate of shoulder internal rotation
 def calc_shoulder_internal_rotation(wrist,shoulder_center):
-    shoulder_internal_rotation = {}
     try:
         # Calculate shoulder internal rotation
         shoulder_internal_rotation =  math.degrees(math.atan2(wrist.y - shoulder_center.y, wrist.x - shoulder_center.x))
         #print("CALCULATED IR", shoulder_internal_rotation)
+        return shoulder_internal_rotation
     except Exception as e:
         print("An error occurred while trying to calculate shoulder internal rotation:", e)
-    return shoulder_internal_rotation
+    return None
 
 # Function: calc_shoulder_external_rotation
 # Intention: Calculates the external rotation based on the wrist and shoulder
@@ -148,14 +152,13 @@ def calc_shoulder_internal_rotation(wrist,shoulder_center):
 # Error Result: An empty object
 # Success Result: An estimate of shoulder external rotation
 def calc_shoulder_external_rotation(wrist,shoulder_center):
-    shoulder_external_rotation = {}
     try:
         shoulder_external_rotation = 180 - math.degrees(math.atan2(wrist.y - shoulder_center.y, wrist.x - shoulder_center.x))
         #print("CALCULATED ER", shoulder_external_rotation)
+        return shoulder_external_rotation
     except Exception as e:
         print("An error occurred while trying to calculate shoulder external rotation:", e)
-    return shoulder_external_rotation
-
+    return None
 
 # Function: get_shoulder_info
 # Intention: Identifies MediaPose landmarks and calculates the positions and rotation values.
