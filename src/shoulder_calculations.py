@@ -17,6 +17,23 @@ from landmark_helpers import *
 # Horizontal Abduction and Adduction (y-axis rotation, arm straight along x-axis thumb- rest 0, straight arm in-front thumb up 90)
 # Abduction and Adjuction (z-axis rotation arm down by side is rest 0, straight out to side is 90, above head palm out 180)
 
+# Function: calc_shoulder_gh_joint
+def calc_shoulder_axis(shoulder, hip):
+    try:
+        x = (shoulder.x - hip.x) / 2
+        y = (shoulder.y - hip.y) / 2
+        z  = (shoulder.z - hip.z) / 2
+        shoulder_axis = Landmark( (shoulder.x + x) / 2,
+                                    (shoulder.y + y)  / 2,
+                                    (shoulder.z + z)/2
+        )
+        #print("Shoulder_GH",shoulder_gh)
+        return shoulder_axis
+    except:
+        print("Could not calculate the shoulder AXIS.")
+    return None
+
+
 
 # Function: calc_shoulder_gh_joint
 # Intention: Estimate the position of the position of the GH-Joint
@@ -106,7 +123,7 @@ def calc_shoulder_flexion(elbow, shoulder_center, hip):
 def calc_shoulder_abduction(elbow, shoulder_center):
     try:
         # Suggest Wrist - Elbow
-        shoulder_abduction =  math.degrees(math.atan2(elbow.y - shoulder_center.y, elbow.x - shoulder_center.x))
+        shoulder_abduction =  90 - math.degrees(math.atan2(elbow.y - shoulder_center.y, elbow.x - shoulder_center.x))
         #print("Calculated SA", shoulder_abduction)
         return shoulder_abduction
     except Exception as e:
@@ -191,6 +208,12 @@ def get_shoulder_info(landmarks):
     return {
             'shoulder_left':shoulder_left,
             'shoulder_right':shoulder_right,
+            'elbow_left': elbow_left,
+            'elbow_right': elbow_right,
+            'wrist_left': wrist_left,
+            'wrist_right': wrist_right,
+            'hip_left': wrist_left,
+            'hip_right': wrist_right,
             'shoulder_center': calc_shoulder_center(shoulder_left,shoulder_right),
             'shoulder_left_gh_joint': calc_shoulder_gh_joint(shoulder_left,hip_left),
             'flexion_left' : calc_shoulder_flexion(elbow_left,shoulder_left,hip_left),
@@ -203,5 +226,7 @@ def get_shoulder_info(landmarks):
             'abduction_right' : calc_shoulder_abduction(elbow_right, shoulder_right),
             'extension_right' : calc_shoulder_extension(elbow_right, shoulder_right),
             'internal_rotation_right' : calc_shoulder_internal_rotation(wrist_right,shoulder_right),
-            'external_rotation_right' : calc_shoulder_external_rotation(wrist_right, shoulder_right)
+            'external_rotation_right' : calc_shoulder_external_rotation(wrist_right, shoulder_right),
+            'shoulder_left_axis': calc_shoulder_axis(shoulder_left, hip_left),
+            'shoulder_right_axis': calc_shoulder_axis(shoulder_right, hip_right)
         }
