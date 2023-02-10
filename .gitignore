@@ -3,3 +3,4 @@ n_env/
 __pycache_/
 *.xlsx
 todo.txt
+src/__pycache__/*

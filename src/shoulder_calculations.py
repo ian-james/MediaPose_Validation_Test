@@ -16,6 +16,63 @@ from landmark_helpers import *
 
 # Horizontal Abduction and Adduction (y-axis rotation, arm straight along x-axis thumb- rest 0, straight arm in-front thumb up 90)
 # Abduction and Adjuction (z-axis rotation arm down by side is rest 0, straight out to side is 90, above head palm out 180)
+# This class is an exploration of the items required to resolve this issue.
+# We will be exploring how to consistently monitor the error in angles.
+class LandmarkError:
+    # init method or constructor
+    def __init__(self, name, expected_value, expected_error, calc_func):
+        self.name = name
+
+        # Dictionary of the landmarks required for calculations
+        # Example Hip, Shoulder, Elbow
+        self.initial_estimate_landmarks = {}
+
+        # A Function which calculates the angle based on Landmarks
+        self.calc_func = calc_func
+
+        # A single value based on the expected value at this pose.
+        # The expected value might be consider the 'user-friendly' number
+        # Actual value is calculated
+        self.expected_value = expected_value
+        self.actual_value = 0
+
+        # Initially, we expect a range of error calculating this error (2-5%)
+        # However, we need to calculated the actual error based on a specific image.
+        self.error = 0
+        self.error_sq = 0
+        self.expected_min_error = 0
+        self.expected_max_error = expected_error
+
+    def extract_landmarks(self,landmarks, side="left"):
+        print("Extract")
+        df = {}
+        try:
+            df = {
+                "shoulder":landmarks["shoulder_"+side],
+                "elbow":landmarks["elbow_"+side],
+                "wrist":landmarks["wrist_"+side],
+                "hip":landmarks["hip_"+side]
+            }
+        except:
+            print("Failed to extract landmarks")
+        print(df)
+        return df
+
+    def calculate_error(self,landmarks):
+        # Compare the calculated to the expected value difference
+        # Determine the amount of error
+        print("Start")
+        print(landmarks)
+        print("((((")
+        print(extract_landmarks(landmarks,side))
+
+        self.actual_value = self.calc_func(landmarks,side)
+        self.error = (self.expected_value-self.actual_value)
+        self.error_sq = self.error* self.error
+        return self.error
+
+    def error_in_range(self):
+        return (self.expected_min_error <=  self.error) and (self.error <=  self.expected_max_error)
 
 # Function: calc_shoulder_gh_joint
 def calc_shoulder_axis(shoulder, hip):
@@ -33,7 +90,17 @@ def calc_shoulder_axis(shoulder, hip):
         print("Could not calculate the shoulder AXIS.")
     return None
 
-
+def calc_shoulder_axis2(shoulder, hip):
+    try:
+        shoulder_axis = Landmark( (shoulder.x),
+                                    (hip.y),
+                                    (shoulder.z)
+        )
+        #print("Shoulder_GH",shoulder_gh)
+        return shoulder_axis
+    except:
+        print("Could not calculate the shoulder AXIS.")
+    return None
 
 # Function: calc_shoulder_gh_joint
 # Intention: Estimate the position of the position of the GH-Joint
@@ -57,7 +124,7 @@ def calc_shoulder_gh_joint(shoulder, hip):
         print("Could not calculate the shoulder GH Joint.")
     return None
 
-# Function: calc_shoulder_center
+# Function: calc_shoulder
 # Intention: Estimate the center position between the two shoulders.
 # Limitations: None
 # Params: Left and Right Shoulder MediaPipe Landmarks or NormalizedLandmarks
@@ -69,20 +136,19 @@ def calc_shoulder_center(shoulder_left, shoulder_right):
                                     (shoulder_left.y + shoulder_right.y) / 2,
                                     (shoulder_left.z + shoulder_right.z) / 2
         )
-        #print("Shoulder_Center",shoulder_center)
         return shoulder_center
     except:
         print("Could not calculate the shoulder center.")
     return None
 
 
-def calc_shoulder_flexion(elbow, shoulder_center, hip):
+def calc_shoulder_flexion(elbow, shoulder, hip):
     """
     Calculates the shoulder flexion angle given the elbow, shoulder center, and hip landmarks.
 
     Args:
         elbow (Landmark): The landmark for the elbow.
-        shoulder_center (Landmark): The landmark for the shoulder center.
+        shoulder (Landmark): The landmark for the shoulder center.
         hip (Landmark): The landmark for the hip.
 
     Returns:
@@ -92,20 +158,20 @@ def calc_shoulder_flexion(elbow, shoulder_center, hip):
     try:
         # Calculate the vectors from the hip to the elbow and from the hip to the shoulder center
         elbow_vector = (elbow.x - hip.x, elbow.y - hip.y)
-        shoulder_center_vector = (shoulder_center.x - hip.x, shoulder_center.y - hip.y)
+        shoulder_vector = (shoulder.x - hip.x, shoulder.y - hip.y)
 
         # Calculate the dot product of the two vectors
-        dot_product = elbow_vector[0] * shoulder_center_vector[0] + elbow_vector[1] * shoulder_center_vector[1]
+        dot_product = elbow_vector[0] * shoulder_vector[0] + elbow_vector[1] * shoulder_vector[1]
 
         # Calculate the lengths of the two vectors
         elbow_vector_length = math.sqrt(elbow_vector[0] ** 2 + elbow_vector[1] ** 2)
-        shoulder_center_vector_length = math.sqrt(shoulder_center_vector[0] ** 2 + shoulder_center_vector[1] ** 2)
+        shoulder_vector_length = math.sqrt(shoulder_vector[0] ** 2 + shoulder_vector[1] ** 2)
 
-        if elbow_vector_length == 0 or shoulder_center_vector_length == 0:
+        if elbow_vector_length == 0 or shoulder_vector_length == 0:
             return None
 
         # Calculate the cosine of the angle between the two vectors
-        cosine_angle = dot_product / (elbow_vector_length * shoulder_center_vector_length)
+        cosine_angle = dot_product / (elbow_vector_length * shoulder_vector_length)
 
         # Calculate the shoulder flexion angle
         shoulder_flexion = math.degrees(math.acos(cosine_angle))
@@ -120,10 +186,10 @@ def calc_shoulder_flexion(elbow, shoulder_center, hip):
 # Params: Elbow and Shoulder MediaPipe Landmarks or NormalizedLandmarks
 # Error Result: An empty object
 # Success Result: An estimate of the shoulder abduction
-def calc_shoulder_abduction(elbow, shoulder_center):
+def calc_shoulder_abduction(elbow, shoulder):
     try:
         # Suggest Wrist - Elbow
-        shoulder_abduction =  90 - math.degrees(math.atan2(elbow.y - shoulder_center.y, elbow.x - shoulder_center.x))
+        shoulder_abduction =  90 - math.degrees(math.atan2(elbow.y - shoulder.y, elbow.x - shoulder.x))
         #print("Calculated SA", shoulder_abduction)
         return shoulder_abduction
     except Exception as e:
@@ -136,10 +202,10 @@ def calc_shoulder_abduction(elbow, shoulder_center):
 # Params: Elbow and Shoulder MediaPipe Landmarks or NormalizedLandmarks
 # Error Result: An empty object
 # Success Result: An estimate of the shoulder extension
-def calc_shoulder_extension(elbow, shoulder_center):
+def calc_shoulder_extension(elbow, shoulder):
     try:
         # Calculate shoulder extension
-        shoulder_extension = 180 - math.degrees(math.atan2(shoulder_center.x - elbow.x, shoulder_center.y - elbow.y))
+        shoulder_extension = 180 - math.degrees(math.atan2(shoulder.x - elbow.x, shoulder.y - elbow.y))
         #print("CALCULATED SE", shoulder_extension)
         return shoulder_extension
     except Exception as e:
@@ -152,10 +218,10 @@ def calc_shoulder_extension(elbow, shoulder_center):
 # Params: wrist and Shoulder MediaPipe Landmarks or NormalizedLandmarks
 # Error Result: An empty object
 # Success Result: An estimate of shoulder internal rotation
-def calc_shoulder_internal_rotation(wrist,shoulder_center):
+def calc_shoulder_internal_rotation(wrist,shoulder):
     try:
         # Calculate shoulder internal rotation
-        shoulder_internal_rotation =  math.degrees(math.atan2(wrist.y - shoulder_center.y, wrist.x - shoulder_center.x))
+        shoulder_internal_rotation =  math.degrees(math.atan2(wrist.y - shoulder.y, wrist.x - shoulder.x))
         #print("CALCULATED IR", shoulder_internal_rotation)
         return shoulder_internal_rotation
     except Exception as e:
@@ -168,9 +234,9 @@ def calc_shoulder_internal_rotation(wrist,shoulder_center):
 # Params: wrist and Shoulder MediaPipe Landmarks or NormalizedLandmarks
 # Error Result: An empty object
 # Success Result: An estimate of shoulder external rotation
-def calc_shoulder_external_rotation(wrist,shoulder_center):
+def calc_shoulder_external_rotation(wrist,shoulder):
     try:
-        shoulder_external_rotation = 180 - math.degrees(math.atan2(wrist.y - shoulder_center.y, wrist.x - shoulder_center.x))
+        shoulder_external_rotation = 180 - math.degrees(math.atan2(wrist.y - shoulder.y, wrist.x - shoulder.x))
         #print("CALCULATED ER", shoulder_external_rotation)
         return shoulder_external_rotation
     except Exception as e:
@@ -228,5 +294,7 @@ def get_shoulder_info(landmarks):
             'internal_rotation_right' : calc_shoulder_internal_rotation(wrist_right,shoulder_right),
             'external_rotation_right' : calc_shoulder_external_rotation(wrist_right, shoulder_right),
             'shoulder_left_axis': calc_shoulder_axis(shoulder_left, hip_left),
-            'shoulder_right_axis': calc_shoulder_axis(shoulder_right, hip_right)
+            'shoulder_right_axis': calc_shoulder_axis(shoulder_right, hip_right),
+            'test_shoulder_left_axis':calc_shoulder_axis2(shoulder_left, hip_left),
+            'test_shoulder_right_axis':calc_shoulder_axis2(shoulder_right, hip_right)
         }

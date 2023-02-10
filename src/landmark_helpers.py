@@ -10,14 +10,22 @@ def get_non_tracked_landmarks(landmarks):
 # Default: Selects Left than Right positions of (shoulder, elbow, wrist,  hip)
 def get_landmark_ids_list():
     return [
-    PoseLandmark.LEFT_SHOULDER,
-    PoseLandmark.RIGHT_SHOULDER,
-    PoseLandmark.LEFT_ELBOW,
-    PoseLandmark.RIGHT_ELBOW,
-    PoseLandmark.LEFT_WRIST,
-    PoseLandmark.RIGHT_WRIST,
-    PoseLandmark.LEFT_HIP,
-    PoseLandmark.RIGHT_HIP
+        PoseLandmark.LEFT_SHOULDER,
+        PoseLandmark.RIGHT_SHOULDER,
+        PoseLandmark.LEFT_ELBOW,
+        PoseLandmark.RIGHT_ELBOW,
+        PoseLandmark.LEFT_WRIST,
+        PoseLandmark.RIGHT_WRIST,
+        PoseLandmark.LEFT_HIP,
+        PoseLandmark.RIGHT_HI
+Pgmail    ]
+
+def get_landmark_ids_left():
+    return [
+        PoseLandmark.LEFT_SHOULDER,
+        PoseLandmark.LEFT_ELBOW,
+        PoseLandmark.LEFT_WRIST,
+        PoseLandmark.LEFT_HIP
     ]
 
 # Retrieve a single landmark from the MediaPipe Landmarks

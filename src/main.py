@@ -160,6 +160,7 @@ with mp_pose.Pose(
     # This section adds our new landmarks and text.
     f_image = None
     is_f_image_set = False
+    shoulder_info = {}
     try:
         # Setup the landmarks to an easy local structure to query.
         landmarks = results.pose_landmarks
@@ -263,6 +264,13 @@ with mp_pose.Pose(
     key = cv2.waitKey(5)
     if key == ord('p'):
         cv2.waitKey(3000)
+    elif( key == ord('s') ):
+        le = LandmarkError("shoulder_flexion", 0.0, 5.0, calc_shoulder_flexion)
+        left_landmark = le.extract_landmarks(shoulder_info)
+        if( le.error_in_range() ):
+            print("Error is in range")
+        else:
+            print("Not in range")
     elif key & 0xFF == 27:
       break
 
