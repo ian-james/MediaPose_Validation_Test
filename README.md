@@ -57,7 +57,8 @@ curl -LJO https://github.com/google/mediapipe/releases/download/v0.8.0/pose_land
 mv pose_landmarks_2d.tflite models/
 
 # Step 4: Run Program
-From the python environment src folder run the following command:
-python test_shoulder_camera.py
+From the python environment go to the /src folder and run the following command:
+python main.py
 
-
+## Run Help
+python main.py -h
