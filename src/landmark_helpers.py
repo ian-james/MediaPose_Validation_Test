@@ -17,8 +17,8 @@ def get_landmark_ids_list():
         PoseLandmark.LEFT_WRIST,
         PoseLandmark.RIGHT_WRIST,
         PoseLandmark.LEFT_HIP,
-        PoseLandmark.RIGHT_HI
-Pgmail    ]
+        PoseLandmark.RIGHT_HIP
+  ]
 
 def get_landmark_ids_left():
     return [
