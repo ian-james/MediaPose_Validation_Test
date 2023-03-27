@@ -52,6 +52,9 @@ ap.add_argument("-i", "--interval", type=int, default=10, help="Interval between
 # Add the output file argument
 ap.add_argument("-o", "--output", type=str, default="frame_data.xlsx", help="Output file name")
 
+# Add the debug mode for more verbose output in terminal.
+ap.add_argument("-d", "--debug", type=bool, default=True, help="Debug mode for more verbose output.")
+
 # Add time to the output file argument
 ap.add_argument("-t", "--timestamp", type=bool, default=False, help="Output append time to file name")
 
@@ -66,10 +69,16 @@ args = vars(ap.parse_args())
 # Initialize frame data
 frame_data = []
 fps_count = 0
+debug_mode = args['debug']
 
 # Initialize output data
 dataframe = pd.DataFrame()
 file_time = time.strftime("%Y_%m_%d-%H_%M_%S_")
+
+# print arguments only when debug is enabled.
+def debug_print(*args):
+    if(debug_mode):
+        print(*args)
 
 # Append the landmarks to the frame data
 def extract_pose_frames(shoulder_info):
@@ -87,8 +96,9 @@ def extract_pose_frames(shoulder_info):
                 d[k +"_presence"] = p.visibility
         return d
     except:
-        print("Failed to extract frame pose data for excel file.")
+        debug_print("Failed to extract frame pose data for excel file.")
     return None
+
 
 # Helpler function to display shoulder text information.
 def display_shoulder(image,x,y,shoulder_name, angle):
@@ -102,9 +112,10 @@ def find_camera():
         cap = cv2.VideoCapture(i)
         test, frame = cap.read()
         if test:
-            print("i : "+str(i)+" /// result: "+str(test))
+            debug_print("i : "+str(i)+" /// result: "+str(test))
 
-def setup_video_capture(filename = "../videos/default.mp4", default_to_camera = False):
+#def setup_video_capture(filename = "../videos/default.mp4", default_to_camera = False):
+def setup_video_capture(filename = "../videos/S02-0302-F-move kettle.MP4", default_to_camera = False):
      # Check if the user chose a video file
     # Ask the user to input the video file name
     mode = VideoMode.VIDEO
@@ -115,7 +126,6 @@ def setup_video_capture(filename = "../videos/default.mp4", default_to_camera = 
         # Open the video mode
         # Find Camera to find the right camera.
         # This is a hack to find the right camera when multiple cameras are connected.
-        
         filename = 2
         #find_camera()
         mode = VideoMode.CAMERA
@@ -129,9 +139,12 @@ def setup_video_capture(filename = "../videos/default.mp4", default_to_camera = 
 ## Start of the main program or loop
 # For webcam input:
 try:
-    cap, mode = setup_video_capture(filename = "")
+    cap, mode = setup_video_capture()
+    #filename = "")
+    debug_print("Mode = ", mode)
+    
 except Exception as e:
-    print("Failed to read video or camera options.", e)
+    debug_print("Failed to read video or camera options.", e)
     exit(1)
 
 with mp_pose.Pose(
@@ -140,7 +153,7 @@ with mp_pose.Pose(
   while cap.isOpened():
     success, image = cap.read()
     if not success:
-      print("Ignoring empty camera frame.")
+      debug_print("Ignoring empty camera frame.")
       # If loading a video, use 'break' instead of 'continue'.
       continue
 
@@ -178,12 +191,12 @@ with mp_pose.Pose(
         # Calculate new positions and angles.
         shoulder_landmarks = get_landmarks(landmarks)
         shoulder_info = get_shoulder_info(landmarks)
-        #print("Print Shoulder Information")
-        #print(shoulder_info)
+        debug_print("Print Shoulder Information")
+        debug_print(shoulder_info)
 
         # Get the Image Shape to accuractly draw.
         height, width = image.shape[:2]
-        #print("Display SHoulder Information")
+        debug_print("Display SHoulder Information")
         #print(height)
         #print(width)
 
@@ -235,7 +248,7 @@ with mp_pose.Pose(
         frame_data.append(odict)
 
     except:
-        #print("FAILED SHOULDER INFORMATION")
+        debug_print("FAILED SHOULDER INFORMATION")
         pass
 
     # Flip the image horizontally for a selfie-view display.
