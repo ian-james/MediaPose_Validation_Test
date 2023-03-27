@@ -58,13 +58,13 @@ class LandmarkError:
         print(df)
         return df
 
-    def calculate_error(self,landmarks):
+    def calculate_error(self,landmarks,side):
         # Compare the calculated to the expected value difference
         # Determine the amount of error
         print("Start")
         print(landmarks)
         print("((((")
-        print(extract_landmarks(landmarks,side))
+        print(self.extract_landmarks(landmarks,side))
 
         self.actual_value = self.calc_func(landmarks,side)
         self.error = (self.expected_value-self.actual_value)

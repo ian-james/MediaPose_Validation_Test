@@ -96,7 +96,13 @@ def display_shoulder(image,x,y,shoulder_name, angle):
     #print("Shoulder ", shoulder_name, " = ", angle)
     cv2.putText(image, f"{shoulder_name}: {angle:.2f}", (x, y), font, 0.5, (255, 255, 255), 2, cv2.LINE_AA)
 
-
+def find_camera():
+    cams_test = 500
+    for i in range(0, cams_test):
+        cap = cv2.VideoCapture(i)
+        test, frame = cap.read()
+        if test:
+            print("i : "+str(i)+" /// result: "+str(test))
 
 def setup_video_capture(filename = "../videos/default.mp4", default_to_camera = False):
      # Check if the user chose a video file
@@ -106,8 +112,12 @@ def setup_video_capture(filename = "../videos/default.mp4", default_to_camera = 
         filename = input("Enter the video file name (or enter to use camera): ").strip()
 
     if(not filename):
-        # Open the video file
-        filename = 0
+        # Open the video mode
+        # Find Camera to find the right camera.
+        # This is a hack to find the right camera when multiple cameras are connected.
+        
+        filename = 2
+        #find_camera()
         mode = VideoMode.CAMERA
 
     cap = cv2.VideoCapture(filename)
