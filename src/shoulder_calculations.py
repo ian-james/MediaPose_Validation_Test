@@ -3,6 +3,7 @@ from mediapipe.python.solutions.pose import PoseLandmark
 from mediapipe.tasks.python.components.containers import Landmark
 
 from landmark_helpers import *
+from utils import *
 
 # Notes:
 # Angles Information
@@ -298,3 +299,23 @@ def get_shoulder_info(landmarks):
             'test_shoulder_left_axis':calc_shoulder_axis2(shoulder_left, hip_left),
             'test_shoulder_right_axis':calc_shoulder_axis2(shoulder_right, hip_right)
         }
+
+
+# Append the landmarks to the frame data
+def extract_pose_frames(shoulder_info):
+    try:
+        d = {}
+        for k, p in shoulder_info.items():
+            if(isinstance(p, (int, float, complex)) and not isinstance(p, bool)):
+                d[k] = p
+            else:
+                d[k + "_x"] = p.x
+                d[k + "_y"] = p.y
+                d[k + "_y"] = p.z
+                d[k + "_pos"] = (p.x, p.y, p.z)
+                d[k + "_visibility"] = p.visibility
+                d[k + "_presence"] = p.visibility
+        return d
+    except:
+        debug_print("Failed to extract frame pose data for excel file.")
+    return None

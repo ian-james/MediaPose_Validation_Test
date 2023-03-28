@@ -42,7 +42,4 @@ def get_landmarks(landmarks, landmark_list=get_landmark_ids_list()):
     return [landmark for idx, landmark in enumerate(landmarks.landmark) if idx in landmark_list]
 
 
-def hide_landmarks(landmarks, hide_ids):
-    for idx, landmark in enumerate(landmarks):
-        if idx in hide_ids:
-            landmark.visibility = 0
+
