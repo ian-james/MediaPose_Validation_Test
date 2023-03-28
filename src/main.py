@@ -61,6 +61,8 @@ ap.add_argument("-t", "--timestamp", type=bool, default=False, help="Output appe
 # Add time to the output file argument
 ap.add_argument("-m", "--mirror", type=bool, default=False, help="Flip the image to mirror your perspective.")
 
+ap.add_argument("-r","--rate", type=float, default=0, help="Frame rate of the video")
+
 # Parse the arguments
 args = vars(ap.parse_args())
 
@@ -68,7 +70,11 @@ args = vars(ap.parse_args())
 
 # Initialize frame data
 frame_data = []
+fps = 0
 fps_count = 0
+fps_rate = 0
+
+start_time = time.time()
 debug_mode = args['debug']
 
 # Initialize output data
@@ -77,9 +83,24 @@ file_time = time.strftime("%Y_%m_%d-%H_%M_%S_")
 
 # print arguments only when debug is enabled.
 def debug_print(*args):
+    global debug_mode
     if(debug_mode):
         print(*args)
+        
+# calculate the frames per second of the running video stream.
+def calculate_fps():
+    global fps, fps_count, start_time
+    fps_count += 1
+    if (time.time() - start_time) > 1 :
+        fps = fps_count
+        fps_count = 0
+        start_time = time.time()
+    return fps
 
+# Display the FPS on the screen.
+def display_fps(image, fps):
+    cv2.putText(image, "FPS: {:.2f}".format(fps), (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
+    
 # Append the landmarks to the frame data
 def extract_pose_frames(shoulder_info):
     try:
@@ -115,8 +136,8 @@ def find_camera():
             debug_print("i : "+str(i)+" /// result: "+str(test))
 
 #def setup_video_capture(filename = "../videos/default.mp4", default_to_camera = False):
-def setup_video_capture(filename = "../videos/S02-0302-F-move kettle.MP4", default_to_camera = False):
-     # Check if the user chose a video file
+def setup_video_capture(filename = "../videos/S02-0302-F-move kettle.MP4", default_to_camera = False, fps_rate = 30):
+    # Check if the user chose a video file
     # Ask the user to input the video file name
     mode = VideoMode.VIDEO
     if( not filename ):
@@ -133,13 +154,20 @@ def setup_video_capture(filename = "../videos/S02-0302-F-move kettle.MP4", defau
     cap = cv2.VideoCapture(filename)
     if(not cap.isOpened()):
         raise ("FAILED TO LOAD VIDEO filename= '", filename,"'")
+    else:  
+        max_fps = cap.get(cv2.CAP_PROP_FPS)        
+        debug_print("MAXIMUM FPS=", max_fps)
+        fps_rate = max_fps        
+        if(args['rate'] != 0):
+            fps_rate = args['rate']        
+            cap.set(cv2.CAP_PROP_FPS, fps_rate) 
 
     return cap, mode
 
 ## Start of the main program or loop
 # For webcam input:
 try:
-    cap, mode = setup_video_capture()
+    cap, mode = setup_video_capture(fps_rate=args['rate'])
     #filename = "")
     debug_print("Mode = ", mode)
     
@@ -158,6 +186,7 @@ with mp_pose.Pose(
       continue
 
     fps_count = fps_count + 1
+    
 
     # To improve performance, optionally mark the image as not writeable to
     # pass by reference.
@@ -240,6 +269,7 @@ with mp_pose.Pose(
         display_shoulder(f_image,x,height-70,"internal_rotation", shoulder_info['internal_rotation_right'])
         display_shoulder(f_image,x,height-90,"external_rotation", shoulder_info['external_rotation_right'])
 
+        # This section manages the data collection.       
         odict = OrderedDict()
         odict['fps_count'] = fps_count
         odict['timestamp'] = datetime.now(timezone.utc)
