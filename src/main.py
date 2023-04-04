@@ -35,10 +35,10 @@ def setup_arguments():
     ap.add_argument("-i", "--interval", type=int, default=10, help="Interval between frame captures (in milliseconds)")
 
     # Add the output file argument
-    ap.add_argument("-o", "--output", type=str, default="frame_data.xlsx", help="Output file name")
+    ap.add_argument("-o", "--output", type=str, default="saved_frame_data", help="Output file name")
 
     # Add the debug mode for more verbose output in terminal.
-    ap.add_argument("-d", "--debug", type=bool, default=True, help="Debug mode for more verbose output.")
+    ap.add_argument("-d", "--debug", type=bool, default=False, help="Debug mode for more verbose output.")
 
     # Add time to the output file argument
     ap.add_argument("-t", "--timestamp", type=bool, default=False, help="Output append time to file name")
@@ -54,32 +54,32 @@ def setup_arguments():
 
 def main():
     global fps, fps_count, fps_rate, start_time, debug_mode, dataframe, file_time
-    
+
     ap = setup_arguments()
     # Parse the arguments
     args = vars(ap.parse_args())
-    
-    # Variables    
+
+    # Variables
     fps_rate = 0
     cap = None
     mode = None
-    
     debug_mode = args['debug']
-    
+
     ## Start of the main program or loop
     # For webcam input:
     try:
         fps_rate = args['rate']
-        cap, mode, fps_rate = setup_video_capture(fps_rate=fps_rate)
+        filename = "" #"../videos/S02-0302-F-move kettle.MP4"
+        cap, mode, fps_rate = setup_video_capture(filename=filename,fps_rate=fps_rate)
         #filename = "")
         debug_print("Mode = ", mode)
-        debug_print("Accepted FPS=", fps_rate)        
+        debug_print("Accepted FPS=", fps_rate)
     except Exception as e:
         debug_print("Failed to read video or camera options.", e)
         exit(1)
 
     # Run Mediapipe Main
-    mediapose_main(args,cap,mode)    
+    mediapose_main(args,cap,mode)
 
     # Clean up the resources for the camera and windows.
     cap.release()

@@ -251,7 +251,7 @@ def calc_shoulder_external_rotation(wrist,shoulder):
 # Error Result: Those positions and information that could be estimate will have data.
 #               Remaining elements will have empty objects.
 # Success Result: A dictionary of shoulder landmarks and calculations.
-def get_shoulder_info(landmarks):
+def get_shoulder_calculations(landmarks):
     shoulder_left = {}
     shoulder_right = {}
     shoulder_center = {}
