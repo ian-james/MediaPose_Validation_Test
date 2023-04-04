@@ -3,9 +3,6 @@ import time
 import logging
 from enum import Enum
 
-# ******************************************* Global Sections
-debug_mode = False
-# ******************************************* End Global Sections
 class VideoMode(Enum):
     CAMERA = 0
     VIDEO = 1

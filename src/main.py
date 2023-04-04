@@ -43,10 +43,6 @@ def set_log_level(level):
     logging.basicConfig(level=numeric_level,
                         format='%(asctime)s - %(levelname)s - %(message)s')
 
-
-#set_log_level("DEBUG")
-set_log_level("INFO")
-
 # ******************************************* Arguments Sections
 def setup_arguments():
 
@@ -75,7 +71,7 @@ def setup_arguments():
 # ******************************************* End Arguments Sections
 
 def main():
-    global fps, fps_count, fps_rate, start_time, debug_mode, dataframe, file_time
+    global fps, fps_count, fps_rate, start_time, dataframe, file_time
 
     ap = setup_arguments()
     # Parse the arguments
@@ -85,10 +81,14 @@ def main():
     fps_rate = 0
     cap = None
     mode = None
-    debug_mode = args['debug']
-    
+
+    if(args['debug'] == True):
+        set_log_level("DEBUG")
+    else:
+        set_log_level("INFO")
+
     logging.info("Starting to write information.")
-    
+
 
     ## Start of the main program or loop
     # For webcam input:
@@ -97,7 +97,7 @@ def main():
         filename = "" #"../videos/S02-0302-F-move kettle.MP4"
         cap, mode, fps_rate = setup_video_capture(filename=filename,fps_rate=fps_rate)
         #filename = "")
-        logging.info(f"Mode = {mode}")       
+        logging.info(f"Mode = {mode}")
         logging.info(f"Accepted FPS= {fps_rate}")
     except Exception as e:
         logging.error(f"Failed to read video or camera options. {e}")

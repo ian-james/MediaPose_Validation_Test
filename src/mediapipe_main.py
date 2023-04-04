@@ -21,7 +21,6 @@ mp_drawing = mp.solutions.drawing_utils
 mp_drawing_styles = mp.solutions.drawing_styles
 mp_pose = mp.solutions.pose
 
-
 def get_shoulder_info(results):
     # Get the shoulder info for the current frame
     shoulder_info = {}
@@ -94,11 +93,12 @@ def handle_keyboard():
 
 def mediapose_main(args, cap, mode):
 
-    check_fps = True
+    check_fps = False
     # Write the DataFrame to an Excel file
     file_time = time.strftime("%Y_%m_%d-%H_%M_%S_")
     output_file = file_time + args['output'] if(args['timestamp']) else args['output']
     df = None
+    total_frames = 0
     needs_flip = args['mirror'] or (mode == VideoMode.CAMERA)
     with FPS() as fps, mp_pose.Pose(min_detection_confidence=0.5, min_tracking_confidence=0.5) as pose:
         while cap.isOpened():
@@ -135,7 +135,7 @@ def mediapose_main(args, cap, mode):
 
                 if(shoulder_info):
                     # This section manages the data collection.
-                    stores_frame_data( shoulder_info, frame_data, fps.num_frames)
+                    stores_frame_data( shoulder_info, frame_data, total_frames)
 
                     # This section manages the text display in 2D.
                     # Note: MediaPose evaluates the model in a different virtual space and the images needs to be flipped horizontal.
@@ -152,8 +152,6 @@ def mediapose_main(args, cap, mode):
 
                     display_shoulder_text(image, results, shoulder_info,needs_flip)
                     df = save_to_csv(df, frame_data, output_file, interval=0)
-                else:
-                    print("Not shoulder info")
 
                 if(handle_keyboard() == False):
                     save_to_csv(df, frame_data, output_file, interval=0)
