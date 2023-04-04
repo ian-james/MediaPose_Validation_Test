@@ -1,5 +1,6 @@
 import cv2
 import time
+import logging
 from enum import Enum
 
 # ******************************************* Global Sections
@@ -29,7 +30,7 @@ def setup_video_capture(filename="", fps_rate=30):
         raise ("FAILED TO LOAD VIDEO filename= '", filename,"'")
     else:
         max_fps = cap.get(cv2.CAP_PROP_FPS)
-        debug_print("MAXIMUM FPS=", max_fps)
+        logging.info("MAXIMUM FPS=", max_fps)
         if(fps_rate == 0):
             fps_rate = max_fps
         else:
@@ -37,12 +38,6 @@ def setup_video_capture(filename="", fps_rate=30):
 
 
     return cap, mode, fps_rate
-
-# print arguments only when debug is enabled.
-def debug_print(*args):
-    global debug_mode
-    if(debug_mode):
-        print(*args)
 
 # calculate the frames per second of the running video stream.
 def calculate_fps():
@@ -61,9 +56,10 @@ def display_fps(image, fps):
 
 # Find the camera index.
 def find_camera():
-    cams_test = 500
+    cams_test = 100
     for i in range(0, cams_test):
         cap = cv2.VideoCapture(i)
         test, frame = cap.read()
         if test:
-            debug_print("i : "+str(i)+" /// result: "+str(test))
+            logging.debug(f"i : {str(i)} /// result: {str(test)}")
+            pass

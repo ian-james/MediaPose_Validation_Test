@@ -2,7 +2,9 @@ from enum import Enum
 from collections import OrderedDict
 from datetime import datetime, timezone
 
+import logging
 from fps_timer import FPS
+
 
 # MediaPipe Includes
 import mediapipe as mp
@@ -29,11 +31,11 @@ def get_shoulder_info(results):
         # Calculate new positions and angles.
         shoulder_landmarks = get_landmarks(landmarks)
 
-        debug_print("Print Shoulder Information")
+        logging.debug("Print Shoulder Information")
         shoulder_info = get_shoulder_calculations(landmarks)
-        debug_print(shoulder_info)
+        logging.debug(shoulder_info)
     except:
-        debug_print("FAILED SHOULDER INFORMATION")
+        logging.debug("FAILED SHOULDER INFORMATION")
         pass
 
     return shoulder_info
@@ -105,16 +107,16 @@ def mediapose_main(args, cap, mode):
 
             if not success:
                 # If loading a video, use 'break' instead of 'continue'.
-                debug_print("Ignoring empty camera frame.")                
+                logging.debug("Ignoring empty camera frame.")
                 continue
 
             should_flip = needs_flip
-            
+
             # To improve performance, optionally mark the image as not writeable to
             # pass by reference.
-            if(check_fps == False):
-                debug_print("FPS: {}".format(fps.get_fps()))
-                #check_fps = True
+            if(check_fps == True):
+                logging.debug("FPS: {}".format(fps.get_fps()))
+                #check_fps = False
             else:
 
                 frame_data = []
@@ -127,7 +129,7 @@ def mediapose_main(args, cap, mode):
                 hide_pose_landmarks(results)
 
                 # Draw all landmarks ( TODO: This might become more shoulder based.)
-                draw_landmarks(image, results)           
+                draw_landmarks(image, results)
 
                 shoulder_info = get_shoulder_info(results)
 
@@ -138,7 +140,7 @@ def mediapose_main(args, cap, mode):
                     # This section manages the text display in 2D.
                     # Note: MediaPose evaluates the model in a different virtual space and the images needs to be flipped horizontal.
                     #       to enable use to put text on the screen.
-                    #       They refer to this a returning to selfie-mode.                    
+                    #       They refer to this a returning to selfie-mode.
                     display_shoulder_positions(image, shoulder_info)
 
                     # Display 2D text on the screen.
@@ -147,7 +149,7 @@ def mediapose_main(args, cap, mode):
                     if(should_flip):
                         image = cv2.flip(image, 1)
                         should_flip = False
-                    
+
                     display_shoulder_text(image, results, shoulder_info,needs_flip)
                     df = save_to_csv(df, frame_data, output_file, interval=0)
                 else:
@@ -161,4 +163,4 @@ def mediapose_main(args, cap, mode):
             # Flipping the image for 2D/3D differences in display positions.
             if( should_flip):
                 image = cv2.flip(image, 1)
-            cv2.imshow('MediaPipe Pose', image)    
+            cv2.imshow('MediaPipe Pose', image)
