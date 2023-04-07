@@ -1,3 +1,4 @@
+import os
 import cv2
 import time
 import logging
@@ -13,6 +14,19 @@ def flip_image(image, should_flip):
         should_flip = False        
     return image, should_flip
    
+
+def create_directory(directory_path):
+    """
+    Creates a directory at the given path if it doesn't already exist.
+
+    Parameters:
+        directory_path (str): The path to the directory to create.
+
+    Returns:
+        None
+    """
+    if not os.path.exists(directory_path):
+        os.makedirs(directory_path)
 
 def setup_video_capture(filename="", fps_rate=30):
     # Check if the user chose a video file

@@ -158,6 +158,17 @@ def draw_mediapipe_extended(pose, image, total_frames, should_flip):
     
     return frame
 
+def open_recording_file(record_file, frame_size, fps, location = "../records/"):
+    # Define the codec and create a VideoWriter object
+    # Allow Recording only if the user previously specified a file name.
+    out_record_media = None
+    if(record_file != ""):
+        absolute_path = os.path.abspath(location)
+        create_directory(absolute_path)
+        full_path = os.path.join(absolute_path, record_file)
+        fourcc = cv2.VideoWriter_fourcc(*'mp4v')
+        out_record_media = cv2.VideoWriter(full_path, fourcc, fps, frame_size)
+    return out_record_media
 
 def mediapose_main(args, cap, mode, frame_size, fps):
 
@@ -175,14 +186,8 @@ def mediapose_main(args, cap, mode, frame_size, fps):
     media_noface = args['media_noface']
     # Define the codec and create a VideoWriter object
     # Allow Recording only if the user previously specified a file name.
-    out = None
-    out_full = None
-    if(args['record'] and args['output']):
-        fourcc = cv2.VideoWriter_fourcc(*'mp4v')
-        out = cv2.VideoWriter(
-            "Recorded_"+args['output'], fourcc, fps, frame_size)
-        out_full = cv2.VideoWriter(
-            "Recorded_full_"+args['output'], fourcc, fps, frame_size)
+    out_record = open_recording_file(args['record'], frame_size, fps)
+    out_record_media = open_recording_file(args['record_media'], frame_size, fps)
 
     with FPS() as fps, mp_pose.Pose(min_detection_confidence=0.5, min_tracking_confidence=0.5) as pose:
         while cap.isOpened():
@@ -195,6 +200,9 @@ def mediapose_main(args, cap, mode, frame_size, fps):
             #         continue
             success, image = cap.read()
             fps.update()
+            
+            if(out_record):
+                out_record.write(image)
 
             if not success:
                 # If loading a video, use 'break' instead of 'continue'.
@@ -221,21 +229,23 @@ def mediapose_main(args, cap, mode, frame_size, fps):
             elif(media_only):
                 frame = draw_mediapipe(
                     pose, image, total_frames, media_noface)
-            else:
-                
+            else:                
                 # Do our version of the pose estimation.
                 frame = draw_mediapipe_extended(pose, image, total_frames, should_flip)
 
             frame_data.append(frame)
             
             cv2.imshow('MediaPipe Pose', image)
-            #if(out_full):
-            #    out_full.write(image)
+            if(out_record_media):
+                out_record_media.write(image)
 
             if(not handle_keyboard()):
                 df = save_to_csv(df, frame_data, output_file, interval=0)
                 break
-    # if(out):
-    #     out.release()
-    # if(out_full):
-    #     out_full.release()
+    
+    if(out_record_media):
+        out_record_media.release()
+    
+    if(out_record):
+        out_record.release()
+    
