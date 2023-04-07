@@ -317,5 +317,5 @@ def extract_pose_frames(shoulder_info):
                 d[k + "_presence"] = p.visibility
         return d
     except:
-        logging.error("Failed to extract frame pose data for excel file.")
+        logging.debug("Failed to extract frame pose data for excel file.")
     return None

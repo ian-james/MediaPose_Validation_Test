@@ -7,6 +7,13 @@ class VideoMode(Enum):
     CAMERA = 0
     VIDEO = 1
 
+def flip_image(image, should_flip):
+    if(should_flip):
+        image = cv2.flip(image, 1)
+        should_flip = False        
+    return image, should_flip
+   
+
 def setup_video_capture(filename="", fps_rate=30):
     # Check if the user chose a video file
     # Ask the user to input the video file name
@@ -33,8 +40,11 @@ def setup_video_capture(filename="", fps_rate=30):
         else:
             cap.set(cv2.CAP_PROP_FPS, fps_rate)
 
+    # Get the input video size and frame rate
+    width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+    height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
 
-    return cap, mode, fps_rate
+    return cap, mode, fps_rate, (width, height)
 
 # calculate the frames per second of the running video stream.
 def calculate_fps():

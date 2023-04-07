@@ -16,16 +16,6 @@ from datetime import datetime, timezone
 from utils import *
 from mediapipe_main import *
 
-# Demo Comments
-# Calibrate in neutral position, where is the axis for their initial position.
-# Consideration for the starting points between normal Range-of-Motion and patients.
-# Further investigate depth as Z-Axis is calculated via ML. How accurate is it?
-# Validations  - Gold standard against ours ( DartFish or OptiTrack etc)
-# Standard starting position for exercises.
-# Goals rely on evaluating tele-health types solutions based on quick assessment (guess-estimate)
-# However, this has potential as low entry points for cost, setup, and now requires validation for accuracy.
-# End Comments
-
 import logging
 
 # Debugging Levels
@@ -62,12 +52,24 @@ def setup_arguments():
     ap.add_argument("-t", "--timestamp", type=bool, default=False, help="Output append time to file name")
 
     # Add time to the output file argument
-    ap.add_argument("-m", "--mirror", type=bool, default=False, help="Flip the image to mirror your perspective.")
+    ap.add_argument("-p", "--mirror", type=bool, default=False, help="Flip the image to mirror your perspective.")
 
-    ap.add_argument("-r","--rate", type=float, default=0, help="Frame rate of the video")
+    # Add the preferred fps rate
+    ap.add_argument("-z","--rate", type=float, default=0, help="Frame rate of the video")
+    
+    # Add an option to record the video
+    ap.add_argument("-r","--record", type=bool, default=False, help="Record the video")
+    
+    # Add an option to load a video file instead of a camera.
+    ap.add_argument("-f","--filename", type=str, default="", help="Load a video file instead of a camera.")
+    
+    # Add an option to run Mediapipe without additional processing.
+    ap.add_argument("-m","--media", type=bool, default=False, help="Run Mediapipe without additional processing.")
+    
+    # Add an option to run Mediapipe without additional processing.
+    ap.add_argument("-n","--media_noface", type=bool, default=False, help="Run Mediapipe without additional processing.")
 
     return ap
-
 # ******************************************* End Arguments Sections
 
 def main():
@@ -80,35 +82,44 @@ def main():
     # Variables
     fps_rate = 0
     cap = None
-    mode = None
-
-    if(args['debug'] == True):
-        set_log_level("DEBUG")
-    else:
-        set_log_level("INFO")
-
-    logging.info("Starting to write information.")
-
-
-    ## Start of the main program or loop
+    mode = None   
+    frame_size = None
     # For webcam input:
+    # Start of the main program or loop
     try:
+        if(args['debug'] == True):
+            set_log_level("DEBUG")
+        else:
+            set_log_level("INFO")
+
+        logging.info("Starting to write information.")
         fps_rate = args['rate']
-        filename = "" #"../videos/S02-0302-F-move kettle.MP4"
-        cap, mode, fps_rate = setup_video_capture(filename=filename,fps_rate=fps_rate)
+        filename = ""
+        filename = args['filename']
+        filename = "../videos/S02-0302-F-move kettle.MP4"
+        #filename = "../videos/S02-0302-SL-move kettle-2.MP4"
+        #filename = "../videos/S02-0302-O-move kettle.MP4"
+                
+        cap, mode, fps_rate, frame_size = setup_video_capture(filename=filename,fps_rate=fps_rate)
         #filename = "")
         logging.info(f"Mode = {mode}")
         logging.info(f"Accepted FPS= {fps_rate}")
+        logging.info(f"Frame Size= {frame_size}")
     except Exception as e:
         logging.error(f"Failed to read video or camera options. {e}")
         exit(1)
 
+
+    if(frame_size == None):
+        logging.error(f"Failed to identify a camera setting. {e}")
+
     # Run Mediapipe Main
-    mediapose_main(args,cap,mode)
+    mediapose_main(args, cap, mode, frame_size, fps_rate)
 
     # Clean up the resources for the camera and windows.
     cap.release()
     cv2.destroyAllWindows()
+    logging.info("Finished writing information. (End of Program)")
 
 if __name__ == '__main__':
     main()

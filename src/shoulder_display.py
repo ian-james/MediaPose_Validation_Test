@@ -111,14 +111,20 @@ def get_hand_color(get_left):
     else:
         return (0, 138, 255)
 
-def display_shoulder_text(image, results, shoulder_info, swap_colors = False):
-    x = 10
-    y = 10
+def display_shoulder_text(image, shoulder_info):
+    x = 30
+    y = 30
     y_offset=-20
     height, width = image.shape[:2]
     # Display the shoulder calculations on the screen.
+    
+    swap_colors = False
+    if(shoulder_info["shoulder_left"].x < shoulder_info['shoulder_right'].x):
+        swap_colors = True
+
     cleft = get_hand_color(not swap_colors )
-    cright = get_hand_color(False or swap_colors)
+    cright = get_hand_color(False or swap_colors)    
+    
     display_shoulder_text_angles(image, shoulder_info, "left", start_x=x, start_y=y, y_offset=y_offset,hand_color=cleft)
     display_shoulder_text_angles(image, shoulder_info, "right", start_x=int(
         width*0.75), start_y=y, y_offset=y_offset, hand_color=cright)
