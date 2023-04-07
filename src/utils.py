@@ -13,7 +13,20 @@ def flip_image(image, should_flip):
         image = cv2.flip(image, 1)
         should_flip = False        
     return image, should_flip
-   
+
+def add_extension(filename, extension=".csv"):
+    basename, ext = os.path.splitext(filename)
+    if ext == extension:
+        return filename
+    else:
+        return filename + extension
+
+def get_file_path(output_file, location="../records/"):
+    # This section manages the data collection.
+    absolute_path = os.path.abspath(location)
+    create_directory(absolute_path)
+    full_path = os.path.join(absolute_path, output_file)
+    return full_path
 
 def create_directory(directory_path):
     """
@@ -48,7 +61,8 @@ def setup_video_capture(filename="", fps_rate=30):
         raise ("FAILED TO LOAD VIDEO filename= '", filename,"'")
     else:
         max_fps = cap.get(cv2.CAP_PROP_FPS)
-        logging.info("MAXIMUM FPS=", max_fps)
+        logging.info(f"MAX FPS= {max_fps}")
+        
         if(fps_rate == 0):
             fps_rate = max_fps
         else:
@@ -57,6 +71,9 @@ def setup_video_capture(filename="", fps_rate=30):
     # Get the input video size and frame rate
     width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
     height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+    
+    logging.info(f"Width = {width}")
+    logging.info(f"Height= {height}")
 
     return cap, mode, fps_rate, (width, height)
 

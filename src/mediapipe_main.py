@@ -20,6 +20,16 @@ mp_drawing_styles = mp.solutions.drawing_styles
 mp_pose = mp.solutions.pose
 
 
+def copy_csv_to_excel(csv_file, excel_file):
+    # Copy the CSV file to an Excel file    
+    try:
+        df = pd.read_csv(csv_file, sep="\t")
+        df.to_excel(excel_file, index=False, header=True)
+    except Exception as e:
+        logging.error("Error copying CSV to Excel: " + str(e))
+
+
+
 def get_shoulder_info(results):
     # Get the shoulder info for the current frame
     shoulder_info = {}
@@ -46,12 +56,10 @@ def setup_frame_data(fps_count):
     odict = OrderedDict()
     odict['fps_count'] = fps_count
     odict['timestamp'] = datetime.now(
-        timezone.utc).replace(microsecond=0).isoformat()
+        timezone.utc).isoformat()
     return odict
 
 # This section manages the data collection.
-
-
 def stores_frame_data(shoulder_info, fps_count):
     # This section manages the data collection.
     odict = setup_frame_data(fps_count)
@@ -59,8 +67,7 @@ def stores_frame_data(shoulder_info, fps_count):
     odict.update(frame)
     return odict
 
-
-def save_to_csv(df, frame_data, output_file, interval=0):
+def save_to_csv(df, frame_data, output_file):
     """
     Appends or saves new data to an Excel file using pandas DataFrame.
 
@@ -69,17 +76,18 @@ def save_to_csv(df, frame_data, output_file, interval=0):
     :param output_file: name of the output Excel file
     :param interval: interval at which to save data (0 to save after each append)
     """
-    file_ext = ".csv"
+    # TODO: Fix this so that it's appending and not overwriting.
+
+    sep = "\t"
     if not isinstance(df, pd.DataFrame):
         df = pd.DataFrame()
     if df.empty:
         df = pd.DataFrame(frame_data)
-        df.to_csv(output_file + file_ext, index=False, header=True, sep="\t")
+        df.to_csv(output_file, index=False, header=True,sep=sep)
     else:
         df = df.append(frame_data, ignore_index=True)
-        # if interval == 0 or len(frame_data) % interval == 0:
-        df.to_csv(output_file + file_ext, index=False,
-                  header=not df.index.size, mode='a')
+        #if interval == 0 or len(df) % interval == 0:
+        df.to_csv(output_file, index=False, header=True, sep=sep)
     return df
 
 
@@ -152,13 +160,14 @@ def draw_mediapipe_extended(pose, image, total_frames, should_flip):
         #       to enable use to put text on the screen.
         #       They refer to this a returning to selfie-mode.
         display_shoulder_positions(image, shoulder_info)
-        
-        # Display 2D text on the screen.        
-        display_shoulder_text(image, shoulder_info)  
-    
+
+        # Display 2D text on the screen.
+        display_shoulder_text(image, shoulder_info)
+
     return frame
 
-def open_recording_file(record_file, frame_size, fps, location = "../records/"):
+
+def open_recording_file(record_file, frame_size, fps, location="../records/"):
     # Define the codec and create a VideoWriter object
     # Allow Recording only if the user previously specified a file name.
     out_record_media = None
@@ -177,30 +186,27 @@ def mediapose_main(args, cap, mode, frame_size, fps):
     check_fps = False
     # Write the DataFrame to an Excel file
     file_time = time.strftime("%Y_%m_%d-%H_%M_%S_")
-    output_file = file_time + \
-        args['output'] if(args['timestamp']) else args['output']
+    output_filename = file_time + args['output'] if(args['timestamp']) else args['output']
+    path_to_file = get_file_path(output_filename, "../records/")
+    output_full_file = add_extension(path_to_file)
+    
 
-    needs_flip = args['mirror'] or (mode == VideoMode.CAMERA)    
+    needs_flip = args['mirror'] or (mode == VideoMode.CAMERA)
 
     media_only = args['media']
     media_noface = args['media_noface']
     # Define the codec and create a VideoWriter object
     # Allow Recording only if the user previously specified a file name.
     out_record = open_recording_file(args['record'], frame_size, fps)
-    out_record_media = open_recording_file(args['record_media'], frame_size, fps)
+    out_record_media = open_recording_file(
+        args['record_media'], frame_size, fps)
 
     with FPS() as fps, mp_pose.Pose(min_detection_confidence=0.5, min_tracking_confidence=0.5) as pose:
         while cap.isOpened():
-            # if paused:
-            #     # Wait for 'p' key to unpause
-            #     key = cv2.waitKey(0) & 0xFF
-            #     if key == ord('p'):
-            #         paused = False
-            #     else:
-            #         continue
+                       
             success, image = cap.read()
             fps.update()
-            
+
             if(out_record):
                 out_record.write(image)
 
@@ -210,10 +216,10 @@ def mediapose_main(args, cap, mode, frame_size, fps):
                 continue
 
             should_flip = needs_flip
-            total_frames += 1
+            total_frames += 1            
             keep_working = True
             frame_data = []
-            
+
             # Check for the multiple types of display.
             # Display the camera and the FPS.
             # Display mediapipe without additional calcualtions.
@@ -229,23 +235,27 @@ def mediapose_main(args, cap, mode, frame_size, fps):
             elif(media_only):
                 frame = draw_mediapipe(
                     pose, image, total_frames, media_noface)
-            else:                
+            else:
                 # Do our version of the pose estimation.
-                frame = draw_mediapipe_extended(pose, image, total_frames, should_flip)
+                frame = draw_mediapipe_extended(
+                    pose, image, total_frames, should_flip)
 
-            frame_data.append(frame)
-            
+            frame_data.append(frame)           
+
             cv2.imshow('MediaPipe Pose', image)
             if(out_record_media):
                 out_record_media.write(image)
-
-            if(not handle_keyboard()):
-                df = save_to_csv(df, frame_data, output_file, interval=0)
+                
+            df = save_to_csv(df, frame_data, output_full_file)
+            if(not handle_keyboard()):                                
                 break
-    
+
     if(out_record_media):
         out_record_media.release()
-    
+
     if(out_record):
         out_record.release()
-    
+        
+    logging.info("Writing excel file from the CSV file.")    
+    # Make a copy of Excel    
+    copy_csv_to_excel(output_full_file, add_extension(path_to_file, ".xlsx"))
