@@ -179,7 +179,7 @@ def calc_shoulder_flexion(elbow, shoulder, hip):
         return shoulder_flexion
     except Exception as e:
         print("An error occurred while trying to calculate shoulder flexion:", e)
-    return None 
+    return None
 
 # Function: calc_shoulder_abduction
 # Intention: Calculates the shoulder abduction based on the elbow and shoulder position.
@@ -317,5 +317,5 @@ def extract_pose_frames(shoulder_info):
                 d[k + "_presence"] = p.visibility
         return d
     except:
-        debug_print("Failed to extract frame pose data for excel file.")
+        logging.debug("Failed to extract frame pose data for excel file.")
     return None

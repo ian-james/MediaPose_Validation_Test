@@ -1,13 +1,18 @@
 import cv2
 import time
+import logging
 from enum import Enum
 
-# ******************************************* Global Sections
-debug_mode = False
-# ******************************************* End Global Sections
 class VideoMode(Enum):
     CAMERA = 0
     VIDEO = 1
+
+def flip_image(image, should_flip):
+    if(should_flip):
+        image = cv2.flip(image, 1)
+        should_flip = False        
+    return image, should_flip
+   
 
 def setup_video_capture(filename="", fps_rate=30):
     # Check if the user chose a video file
@@ -29,20 +34,17 @@ def setup_video_capture(filename="", fps_rate=30):
         raise ("FAILED TO LOAD VIDEO filename= '", filename,"'")
     else:
         max_fps = cap.get(cv2.CAP_PROP_FPS)
-        debug_print("MAXIMUM FPS=", max_fps)
+        logging.info("MAXIMUM FPS=", max_fps)
         if(fps_rate == 0):
             fps_rate = max_fps
         else:
             cap.set(cv2.CAP_PROP_FPS, fps_rate)
 
+    # Get the input video size and frame rate
+    width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+    height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
 
-    return cap, mode, fps_rate
-
-# print arguments only when debug is enabled.
-def debug_print(*args):
-    global debug_mode
-    if(debug_mode):
-        print(*args)
+    return cap, mode, fps_rate, (width, height)
 
 # calculate the frames per second of the running video stream.
 def calculate_fps():
@@ -61,9 +63,10 @@ def display_fps(image, fps):
 
 # Find the camera index.
 def find_camera():
-    cams_test = 500
+    cams_test = 100
     for i in range(0, cams_test):
         cap = cv2.VideoCapture(i)
         test, frame = cap.read()
         if test:
-            debug_print("i : "+str(i)+" /// result: "+str(test))
+            logging.debug(f"i : {str(i)} /// result: {str(test)}")
+            pass
