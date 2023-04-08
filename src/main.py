@@ -38,13 +38,8 @@ def setup_arguments():
 
     # Initialize the argument parser
     ap = argparse.ArgumentParser()
-
-    # Add the interval argument
-    ap.add_argument("-i", "--interval", type=int, default=10, help="Interval between frame captures (in milliseconds)")
-
-    # Add the output file argument
-    ap.add_argument("-o", "--output", type=str, default="saved_frame_data", help="Output file name")
-
+    
+    ##################### Debugging arguments.
     # Add the debug mode for more verbose output in terminal.
     ap.add_argument("-d", "--debug", type=bool, default=False, help="Debug mode for more verbose output.")
 
@@ -69,6 +64,39 @@ def setup_arguments():
     # Add an option to run Mediapipe without additional processing.
     ap.add_argument("-n","--media_noface", type=bool, default=False, help="Run Mediapipe without additional processing.")
 
+    ##################### Output arguments.
+    
+    # Add the output file argument
+    ap.add_argument("-o", "--output", type=str,
+                    default="saved_frame_data", help="Output file name")
+    
+    # Add time to the output file argument
+    ap.add_argument("-t", "--timestamp", type=bool, default=False,
+                    help="Output append time to file name")
+    
+    # Add an option to record the video
+    ap.add_argument("-r", "--record", type=str, default="",
+                    help="Record the video only")
+
+    # Add an option to record the video with mediapipe content.
+    ap.add_argument("-rp", "--record_media", type=str, default="",
+                    help="Record the video only  with mediapipe content.")
+
+    # Add an option to load a video file instead of a camera.
+    ap.add_argument("-f", "--filename", type=str, default="",
+                    help="Load a video file instead of a camera.")
+
+    ##################### Format Arguments.
+    
+    # Add the interval argument
+    ap.add_argument("-i", "--interval", type=int, default=10, help="Save Frame at interval of x frames.")
+
+    # Add time to the output file argument
+    ap.add_argument("-m", "--mirror", type=bool, default=False, help="Flip the image to mirror your perspective.")
+
+    # Add the preferred fps rate
+    ap.add_argument("-z","--rate", type=float, default=0, help="Frame rate of the video")
+
     return ap
 # ******************************************* End Arguments Sections
 
@@ -87,7 +115,7 @@ def main():
     # For webcam input:
     # Start of the main program or loop
     try:
-        if(args['debug'] == True):
+        if(args['debug'] == True):            
             set_log_level("DEBUG")
         else:
             set_log_level("INFO")
@@ -101,14 +129,13 @@ def main():
         #filename = "../videos/S02-0302-O-move kettle.MP4"
 
         cap, mode, fps_rate, frame_size = setup_video_capture(filename=filename,fps_rate=fps_rate)
-        #filename = "")
+        
         logging.info(f"Mode = {mode}")
         logging.info(f"Accepted FPS= {fps_rate}")
         logging.info(f"Frame Size= {frame_size}")
     except Exception as e:
         logging.error(f"Failed to read video or camera options. {e}")
         return 1
-
 
 
     if(frame_size == None):
@@ -120,7 +147,8 @@ def main():
     # Clean up the resources for the camera and windows.
     cap.release()
     cv2.destroyAllWindows()
-    logging.info("Finished writing information. (End of Program)")
+    logging.info("Finished writing information. (End of Program)")   
+   
 
 if __name__ == '__main__':
     main()
