@@ -41,31 +41,20 @@ def setup_arguments():
     
     ##################### Debugging arguments.
     # Add the debug mode for more verbose output in terminal.
-    ap.add_argument("-d", "--debug", type=bool, default=False, help="Debug mode for more verbose output.")
-
-    # Add time to the output file argument
-    ap.add_argument("-t", "--timestamp", type=bool, default=False, help="Output append time to file name")
-
-    # Add time to the output file argument
-    ap.add_argument("-p", "--mirror", type=bool, default=False, help="Flip the image to mirror your perspective.")
-
-    # Add the preferred fps rate
-    ap.add_argument("-z","--rate", type=float, default=0, help="Frame rate of the video")
-
-    # Add an option to record the video
-    ap.add_argument("-r","--record", type=bool, default=False, help="Record the video")
-
-    # Add an option to load a video file instead of a camera.
-    ap.add_argument("-f","--filename", type=str, default="", help="Load a video file instead of a camera.")
-
     # Add an option to run Mediapipe without additional processing.
     ap.add_argument("-m","--media", type=bool, default=False, help="Run Mediapipe without additional processing.")
 
     # Add an option to run Mediapipe without additional processing.
     ap.add_argument("-n","--media_noface", type=bool, default=False, help="Run Mediapipe without additional processing.")
-
-    ##################### Output arguments.
     
+    ap.add_argument("-l", "--log", type=str, default="info", help="Set the logging level. (debug, info, warning, error, critical)")
+    
+    # TODO: Add Camera arguments
+    # ap.add_argument("-c", "--camera", type=int, default=0, help="Set the camera to use. (0, 1, 2, etc.)")
+    
+    ap.add_argument("-d","--display", type=bool, default=False, help="Run Mediapipe without dislaying the HUD/Overlay calculations.")
+    
+    ##################### Output arguments.    
     # Add the output file argument
     ap.add_argument("-o", "--output", type=str,
                     default="saved_frame_data", help="Output file name")
@@ -73,26 +62,25 @@ def setup_arguments():
     # Add time to the output file argument
     ap.add_argument("-t", "--timestamp", type=bool, default=False,
                     help="Output append time to file name")
-    
+       
     # Add an option to record the video
-    ap.add_argument("-r", "--record", type=str, default="",
+    ap.add_argument("-r", "--record", type=str, default="record_video.mp4",
                     help="Record the video only")
 
     # Add an option to record the video with mediapipe content.
-    ap.add_argument("-rp", "--record_media", type=str, default="",
-                    help="Record the video only  with mediapipe content.")
+    ap.add_argument("-rp", "--record_media", type=str, default="record_full.mp4",
+                    help="Record the video only with mediapipe content.")
 
     # Add an option to load a video file instead of a camera.
     ap.add_argument("-f", "--filename", type=str, default="",
                     help="Load a video file instead of a camera.")
 
-    ##################### Format Arguments.
-    
+    ##################### Format Arguments.    
     # Add the interval argument
     ap.add_argument("-i", "--interval", type=int, default=10, help="Save Frame at interval of x frames.")
-
+    
     # Add time to the output file argument
-    ap.add_argument("-m", "--mirror", type=bool, default=False, help="Flip the image to mirror your perspective.")
+    ap.add_argument("-p", "--mirror", type=bool, default=False, help="Flip the image to mirror your perspective.")
 
     # Add the preferred fps rate
     ap.add_argument("-z","--rate", type=float, default=0, help="Frame rate of the video")
@@ -115,16 +103,13 @@ def main():
     # For webcam input:
     # Start of the main program or loop
     try:
-        if(args['debug'] == True):            
-            set_log_level("DEBUG")
-        else:
-            set_log_level("INFO")
-
+        
+        set_log_level(args['log'])
         logging.info("Starting to write information.")
         fps_rate = args['rate']
         filename = ""
         filename = args['filename']
-        #filename = "../videos/S02-0302-F-move kettle.MP4"
+        filename = "../videos/S02-0302-F-move kettle.MP4"
         #filename = "../videos/S02-0302-SL-move kettle-2.MP4"
         #filename = "../videos/S02-0302-O-move kettle.MP4"
 

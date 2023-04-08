@@ -102,9 +102,9 @@ def handle_keyboard(image):
     key = cv2.waitKey(1)
     if key == ord('p'):
         cv2.waitKey(3000)
-    elif(key == ord('s')):
-        file_time = time.strftime("%Y_%m_%d-%H_%M_%S_")
-        write_snapshot_image(file_time, image)      
+    elif(key == ord('s')):        
+        snapshot_file =  time.strftime("%Y_%m_%d-%H_%M_%S_") + "_snapshot.png"        
+        write_snapshot_image(get_file_path(snapshot_file), image)      
         pass
     elif(key==ord('d')):
         pass
@@ -144,7 +144,7 @@ def draw_mediapipe(pose, image, total_frames, media_noface):
     return frame
 
 
-def draw_mediapipe_extended(pose, image, total_frames, should_flip):
+def draw_mediapipe_extended(pose, image, total_frames, display_calculations = False):
 
     frame = setup_frame_data(total_frames)
     disable_writing(image)
@@ -169,8 +169,9 @@ def draw_mediapipe_extended(pose, image, total_frames, should_flip):
         #       They refer to this a returning to selfie-mode.
         display_shoulder_positions(image, shoulder_info)
 
-        # Display 2D text on the screen.
-        display_shoulder_text(image, shoulder_info)
+        if(display_calculations):
+            # Display 2D text on the screen.
+            display_shoulder_text(image, shoulder_info)
 
     return frame
 
@@ -246,7 +247,7 @@ def mediapose_main(args, cap, mode, frame_size, fps):
             else:
                 # Do our version of the pose estimation.
                 frame = draw_mediapipe_extended(
-                    pose, image, total_frames, should_flip)
+                    pose, image, total_frames, args['display'])
 
             frame_data.append(frame)           
 
@@ -255,7 +256,7 @@ def mediapose_main(args, cap, mode, frame_size, fps):
                 out_record_media.write(image)
                 
             df = save_to_csv(df, frame_data, output_full_file)
-            if(not handle_keyboard()):                                
+            if(not handle_keyboard(image)):                                
                 break
 
     if(out_record_media):
