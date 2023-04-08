@@ -82,8 +82,12 @@ def save_to_csv(df, frame_data, output_file, interval=0):
                   header=not df.index.size, mode='a')
     return df
 
+def write_snapshot_image(filename, image):
+    # Write the image to a file
+    status = cv2.imwrite(filename, image)
+    return status
 
-def handle_keyboard():
+def handle_keyboard(image):
     # Allow some keyboard actions
     # p-Pause
     # esc-exit
@@ -91,6 +95,10 @@ def handle_keyboard():
     if key == ord('p'):
         cv2.waitKey(3000)
     elif(key == ord('s')):
+        file_time = time.strftime("%Y_%m_%d-%H_%M_%S_")
+        write_snapshot_image(file_time, image)      
+        pass
+    elif(key==ord('d')):
         pass
         # le = LandmarkError("shoulder_flexion", 0.0,
         #                     5.0, calc_shoulder_flexion)
@@ -152,10 +160,10 @@ def draw_mediapipe_extended(pose, image, total_frames, should_flip):
         #       to enable use to put text on the screen.
         #       They refer to this a returning to selfie-mode.
         display_shoulder_positions(image, shoulder_info)
-        
-        # Display 2D text on the screen.        
-        display_shoulder_text(image, shoulder_info)  
-    
+
+        # Display 2D text on the screen.
+        display_shoulder_text(image, shoulder_info)
+
     return frame
 
 
@@ -169,7 +177,7 @@ def mediapose_main(args, cap, mode, frame_size, fps):
     output_file = file_time + \
         args['output'] if(args['timestamp']) else args['output']
 
-    needs_flip = args['mirror'] or (mode == VideoMode.CAMERA)    
+    needs_flip = args['mirror'] or (mode == VideoMode.CAMERA)
 
     media_only = args['media']
     media_noface = args['media_noface']
@@ -205,7 +213,7 @@ def mediapose_main(args, cap, mode, frame_size, fps):
             total_frames += 1
             keep_working = True
             frame_data = []
-            
+
             # Check for the multiple types of display.
             # Display the camera and the FPS.
             # Display mediapipe without additional calcualtions.
@@ -222,17 +230,16 @@ def mediapose_main(args, cap, mode, frame_size, fps):
                 frame = draw_mediapipe(
                     pose, image, total_frames, media_noface)
             else:
-                
                 # Do our version of the pose estimation.
                 frame = draw_mediapipe_extended(pose, image, total_frames, should_flip)
 
             frame_data.append(frame)
-            
+
             cv2.imshow('MediaPipe Pose', image)
             #if(out_full):
             #    out_full.write(image)
 
-            if(not handle_keyboard()):
+            if(not handle_keyboard(image)):
                 df = save_to_csv(df, frame_data, output_file, interval=0)
                 break
     # if(out):

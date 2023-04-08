@@ -56,16 +56,16 @@ def setup_arguments():
 
     # Add the preferred fps rate
     ap.add_argument("-z","--rate", type=float, default=0, help="Frame rate of the video")
-    
+
     # Add an option to record the video
     ap.add_argument("-r","--record", type=bool, default=False, help="Record the video")
-    
+
     # Add an option to load a video file instead of a camera.
     ap.add_argument("-f","--filename", type=str, default="", help="Load a video file instead of a camera.")
-    
+
     # Add an option to run Mediapipe without additional processing.
     ap.add_argument("-m","--media", type=bool, default=False, help="Run Mediapipe without additional processing.")
-    
+
     # Add an option to run Mediapipe without additional processing.
     ap.add_argument("-n","--media_noface", type=bool, default=False, help="Run Mediapipe without additional processing.")
 
@@ -82,7 +82,7 @@ def main():
     # Variables
     fps_rate = 0
     cap = None
-    mode = None   
+    mode = None
     frame_size = None
     # For webcam input:
     # Start of the main program or loop
@@ -96,10 +96,10 @@ def main():
         fps_rate = args['rate']
         filename = ""
         filename = args['filename']
-        filename = "../videos/S02-0302-F-move kettle.MP4"
+        #filename = "../videos/S02-0302-F-move kettle.MP4"
         #filename = "../videos/S02-0302-SL-move kettle-2.MP4"
         #filename = "../videos/S02-0302-O-move kettle.MP4"
-                
+
         cap, mode, fps_rate, frame_size = setup_video_capture(filename=filename,fps_rate=fps_rate)
         #filename = "")
         logging.info(f"Mode = {mode}")
@@ -107,7 +107,8 @@ def main():
         logging.info(f"Frame Size= {frame_size}")
     except Exception as e:
         logging.error(f"Failed to read video or camera options. {e}")
-        exit(1)
+        return 1
+
 
 
     if(frame_size == None):
