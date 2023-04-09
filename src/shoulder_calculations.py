@@ -158,7 +158,7 @@ def calc_shoulder_flexion(elbow, shoulder, hip):
 
     try:
         # Calculate the vectors from the hip to the elbow and from the hip to the shoulder center
-        elbow_vector = (elbow.x - hip.x, elbow.y - hip.y)
+        elbow_vector = (elbow.x - shoulder.x, elbow.y - shoulder.y)
         shoulder_vector = (shoulder.x - hip.x, shoulder.y - hip.y)
 
         # Calculate the dot product of the two vectors
@@ -175,8 +175,8 @@ def calc_shoulder_flexion(elbow, shoulder, hip):
         cosine_angle = dot_product / (elbow_vector_length * shoulder_vector_length)
 
         # Calculate the shoulder flexion angle
-        shoulder_flexion = math.degrees(math.acos(cosine_angle))
-        return shoulder_flexion
+        shoulder_flexion = math.degrees(math.acos(cosine_angle))        
+        return 180 -shoulder_flexion
     except Exception as e:
         print("An error occurred while trying to calculate shoulder flexion:", e)
     return None

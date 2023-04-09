@@ -90,6 +90,20 @@ def save_to_csv(df, frame_data, output_file):
         df.to_csv(output_file, index=False, header=True, sep=sep)
     return df
 
+def save_key_columns(df, output_file):
+    key_columns = ['fps_count', 'timestamp',
+                   'shoulder_left', 'shoulder_right', 'shoulder_center',
+                   'elbow_left', 'elbow_right', 'elbow_center',
+                   'hip_left', 'hip_right', 'hip_center',
+                   'wrist_left', 'wrist_right', 'wrist_center',                   
+                   'shoulder_flexion', 'shoulder_abduction']
+    
+    # Select only the key_columns from the data frame if they exist.
+    ndf = df.loc[:, df.columns.isin(key_columns)]
+    df.to_csv(output_file, index=False, header=True, sep="\t")
+    
+    
+
 def write_snapshot_image(filename, image):
     # Write the image to a file
     status = cv2.imwrite(filename, image)
@@ -105,16 +119,7 @@ def handle_keyboard(image):
     elif(key == ord('s')):        
         snapshot_file =  time.strftime("%Y_%m_%d-%H_%M_%S_") + "_snapshot.png"        
         write_snapshot_image(get_file_path(snapshot_file), image)      
-        pass
-    elif(key==ord('d')):
-        pass
-        # le = LandmarkError("shoulder_flexion", 0.0,
-        #                     5.0, calc_shoulder_flexion)
-        # left_landmark = le.extract_landmarks(shoulder_info)
-        # if(le.error_in_range()):
-        #     print("Error is in range")
-        # else:
-        #     print("Not in range")
+        pass    
     elif key & 0xFF == 27:
         return False
     return True
@@ -199,7 +204,6 @@ def mediapose_main(args, cap, mode, frame_size, fps):
     path_to_file = get_file_path(output_filename, "../records/")
     output_full_file = add_extension(path_to_file)
     
-
     needs_flip = args['mirror'] or (mode == VideoMode.CAMERA)
 
     media_only = args['media']
@@ -210,20 +214,25 @@ def mediapose_main(args, cap, mode, frame_size, fps):
     out_record_media = open_recording_file(
         args['record_media'], frame_size, fps)
 
+    # The first frame indicates if the camera or video is working.    
+
     with FPS() as fps, mp_pose.Pose(min_detection_confidence=0.5, min_tracking_confidence=0.5) as pose:
         while cap.isOpened():
                        
             success, image = cap.read()
-            fps.update()
+            fps.update()           
 
+            if not success:   
+                if(mode == VideoMode.VIDEO):
+                    logging.info("Finished the video.")
+                    break
+                else:
+                    logging.info("Ignoring empty camera frame.")
+                    continue                    
+            
             if(out_record):
                 out_record.write(image)
-
-            if not success:
-                # If loading a video, use 'break' instead of 'continue'.
-                logging.debug("Ignoring empty camera frame.")
-                continue
-
+          
             should_flip = needs_flip
             total_frames += 1            
             keep_working = True
@@ -256,6 +265,7 @@ def mediapose_main(args, cap, mode, frame_size, fps):
                 out_record_media.write(image)
                 
             df = save_to_csv(df, frame_data, output_full_file)
+            save_key_columns(df, add_extension(path_to_file + "_keycols"))
             if(not handle_keyboard(image)):                                
                 break
 
