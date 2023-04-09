@@ -75,9 +75,9 @@ def display_shoulder_text_angles(image, shoulder_info, shoulder_str="left",start
                                    shoulder_info['abduction_'+shoulder_str],hand_color)
     display_shoulder_text_property(image, x, start_y-y_offset*2,"extension",
                                    shoulder_info['extension_'+shoulder_str], hand_color)
-    display_shoulder_text_property(image, x, start_y-y_offset*3, "internal_rotation",
-                                   shoulder_info['internal_rotation_'+shoulder_str], hand_color)
-    display_shoulder_text_property(image, x, start_y-y_offset*4, "external_rotation",
+    display_shoulder_text_property(image, x, start_y-y_offset*3, "internal_rot",
+                                    shoulder_info['internal_rotation_'+shoulder_str], hand_color)
+    display_shoulder_text_property(image, x, start_y-y_offset*4, "external_rot",
                                    shoulder_info['external_rotation_'+shoulder_str], hand_color)
 
 # This function is used to display the shoulder landmarks that we have added and are not included in the MediaPipe Pose.

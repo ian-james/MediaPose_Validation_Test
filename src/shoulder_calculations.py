@@ -187,10 +187,10 @@ def calc_shoulder_flexion(elbow, shoulder, hip):
 # Params: Elbow and Shoulder MediaPipe Landmarks or NormalizedLandmarks
 # Error Result: An empty object
 # Success Result: An estimate of the shoulder abduction
-def calc_shoulder_abduction(elbow, shoulder):
+def calc_shoulder_abduction(elbow, shoulder,hip):
     try:
         # Suggest Wrist - Elbow
-        shoulder_abduction =  90 - math.degrees(math.atan2(elbow.y - shoulder.y, elbow.x - shoulder.x))
+        shoulder_abduction = 90-math.degrees(math.atan2(elbow.y - shoulder.y, elbow.x - shoulder.x))
         #print("Calculated SA", shoulder_abduction)
         return shoulder_abduction
     except Exception as e:
@@ -283,14 +283,14 @@ def get_shoulder_calculations(landmarks):
             'hip_right': wrist_right,
             'shoulder_center': calc_shoulder_center(shoulder_left,shoulder_right),
             'shoulder_left_gh_joint': calc_shoulder_gh_joint(shoulder_left,hip_left),
-            'flexion_left' : calc_shoulder_flexion(elbow_left,shoulder_left,hip_left),
-            'abduction_left' : calc_shoulder_abduction(elbow_left, shoulder_left),
+            'flexion_left' : calc_shoulder_flexion(elbow_left,shoulder_left,hip_left),            
+            'abduction_left': calc_shoulder_abduction(elbow_left, shoulder_left,hip_left),
             'extension_left' : calc_shoulder_extension(elbow_left, shoulder_left),
             'internal_rotation_left' : calc_shoulder_internal_rotation(wrist_left,shoulder_left),
             'external_rotation_left' : calc_shoulder_external_rotation(wrist_left, shoulder_left),
             'shoulder_right_gh_joint': calc_shoulder_gh_joint(shoulder_right,hip_right),
-            'flexion_right' : calc_shoulder_flexion(elbow_right,shoulder_right,hip_right),
-            'abduction_right' : calc_shoulder_abduction(elbow_right, shoulder_right),
+            'flexion_right' : calc_shoulder_flexion(elbow_right,shoulder_right,hip_right),            
+            'abduction_right' : calc_shoulder_abduction(elbow_right, shoulder_right,hip_right),
             'extension_right' : calc_shoulder_extension(elbow_right, shoulder_right),
             'internal_rotation_right' : calc_shoulder_internal_rotation(wrist_right,shoulder_right),
             'external_rotation_right' : calc_shoulder_external_rotation(wrist_right, shoulder_right),
