@@ -1,103 +1,68 @@
+# This utility file is used to store functions that are used in multiple files.
+# It includes functions specific to mediapipe managing data.
+
 import os
-import cv2
 import time
-import logging
 from enum import Enum
+from collections import OrderedDict
+from datetime import datetime, timezone
 
-class VideoMode(Enum):
-    CAMERA = 0
-    VIDEO = 1
+import cv2
+import pandas as pd
+import logging
 
-def flip_image(image, should_flip):
-    if(should_flip):
-        image = cv2.flip(image, 1)
-        should_flip = False        
-    return image, should_flip
+from shoulder_calculations import extract_pose_frames
 
-def add_extension(filename, extension=".csv"):
-    basename, ext = os.path.splitext(filename)
-    if ext == extension:
-        return filename
-    else:
-        return filename + extension
-
-def get_file_path(output_file, location="../records/"):
+def setup_frame_data(fps_count):
     # This section manages the data collection.
-    absolute_path = os.path.abspath(location)
-    create_directory(absolute_path)
-    full_path = os.path.join(absolute_path, output_file)
-    return full_path
+    odict = OrderedDict()
+    odict['fps_count'] = fps_count
+    odict['timestamp'] = datetime.now(
+        timezone.utc).isoformat()
+    return odict
 
-def create_directory(directory_path):
+
+# This section manages the data collection.
+def stores_frame_data(shoulder_info, fps_count):
+    # This section manages the data collection.
+    odict = setup_frame_data(fps_count)
+    frame = extract_pose_frames(shoulder_info)
+    odict.update(frame)
+    return odict
+
+
+def save_to_csv(df, frame_data, output_file):
     """
-    Creates a directory at the given path if it doesn't already exist.
+    Appends or saves new data to an Excel file using pandas DataFrame.
 
-    Parameters:
-        directory_path (str): The path to the directory to create.
-
-    Returns:
-        None
+    :param df: pandas DataFrame to append to, or an empty DataFrame to create
+    :param frame_data: list of dictionaries representing rows to append
+    :param output_file: name of the output Excel file
+    :param interval: interval at which to save data (0 to save after each append)
     """
-    if not os.path.exists(directory_path):
-        os.makedirs(directory_path)
+    # TODO: Fix this so that it's appending and not overwriting.
 
-def setup_video_capture(filename="", fps_rate=30):
-    # Check if the user chose a video file
-    # Ask the user to input the video file name
-    mode = VideoMode.VIDEO
-    if( not filename ):
-        filename = input("Enter the video file name (or enter to use camera): ").strip()
-
-    if(not filename):
-        # Open the video mode
-        # Find Camera to find the right camera.
-        # This is a hack to find the right camera when multiple cameras are connected.
-        filename = 2
-        #find_camera()
-        mode = VideoMode.CAMERA
-
-    cap = cv2.VideoCapture(filename)
-    if(not cap.isOpened()):
-        raise ("FAILED TO LOAD VIDEO filename= '", filename,"'")
+    sep = "\t"
+    if not isinstance(df, pd.DataFrame):
+        df = pd.DataFrame()
+    if df.empty:
+        df = pd.DataFrame(frame_data)
+        df.to_csv(output_file, index=False, header=True, sep=sep)
     else:
-        max_fps = cap.get(cv2.CAP_PROP_FPS)
-        logging.info(f"MAX FPS= {max_fps}")
-        
-        if(fps_rate == 0):
-            fps_rate = max_fps
-        else:
-            cap.set(cv2.CAP_PROP_FPS, fps_rate)
+        df = df.append(frame_data, ignore_index=True)
+        #if interval == 0 or len(df) % interval == 0:
+        df.to_csv(output_file, index=False, header=True, sep=sep)
+    return df
 
-    # Get the input video size and frame rate
-    width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
-    height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
-    
-    logging.info(f"Width = {width}")
-    logging.info(f"Height= {height}")
 
-    return cap, mode, fps_rate, (width, height)
+def save_key_columns(df, output_file):
+    key_columns = ['fps_count', 'timestamp',
+                   'shoulder_left', 'shoulder_right', 'shoulder_center',
+                   'elbow_left', 'elbow_right', 'elbow_center',
+                   'hip_left', 'hip_right', 'hip_center',
+                   'wrist_left', 'wrist_right', 'wrist_center',
+                   'shoulder_flexion', 'shoulder_abduction']
 
-# calculate the frames per second of the running video stream.
-def calculate_fps():
-    global fps, fps_count, start_time
-    fps_count += 1
-    if (time.time() - start_time) > 1:
-        fps = fps_count
-        fps_count = 0
-        start_time = time.time()
-    return fps
-
-# Display the FPS on the screen.
-def display_fps(image, fps):
-    cv2.putText(image, "FPS: {:.2f}".format(
-        fps), (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
-
-# Find the camera index.
-def find_camera():
-    cams_test = 100
-    for i in range(0, cams_test):
-        cap = cv2.VideoCapture(i)
-        test, frame = cap.read()
-        if test:
-            logging.debug(f"i : {str(i)} /// result: {str(test)}")
-            pass
+    # Select only the key_columns from the data frame if they exist.
+    ndf = df.loc[:, df.columns.isin(key_columns)]
+    df.to_csv(output_file, index=False, header=True, sep="\t")

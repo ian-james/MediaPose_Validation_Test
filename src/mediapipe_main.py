@@ -4,6 +4,10 @@ from datetime import datetime, timezone
 
 import logging
 from fps_timer import FPS
+from camera_utils import *
+from file_utils import *
+
+
 
 # MediaPipe Includes
 import mediapipe as mp
@@ -18,17 +22,6 @@ from landmark_helpers import *
 mp_drawing = mp.solutions.drawing_utils
 mp_drawing_styles = mp.solutions.drawing_styles
 mp_pose = mp.solutions.pose
-
-
-def copy_csv_to_excel(csv_file, excel_file):
-    # Copy the CSV file to an Excel file    
-    try:
-        df = pd.read_csv(csv_file, sep="\t")
-        df.to_excel(excel_file, index=False, header=True)
-    except Exception as e:
-        logging.error("Error copying CSV to Excel: " + str(e))
-
-
 
 def get_shoulder_info(results):
     # Get the shoulder info for the current frame
@@ -48,67 +41,6 @@ def get_shoulder_info(results):
 
     return shoulder_info
 
-# This section manages the data collection.
-
-
-def setup_frame_data(fps_count):
-    # This section manages the data collection.
-    odict = OrderedDict()
-    odict['fps_count'] = fps_count
-    odict['timestamp'] = datetime.now(
-        timezone.utc).isoformat()
-    return odict
-
-# This section manages the data collection.
-def stores_frame_data(shoulder_info, fps_count):
-    # This section manages the data collection.
-    odict = setup_frame_data(fps_count)
-    frame = extract_pose_frames(shoulder_info)
-    odict.update(frame)
-    return odict
-
-def save_to_csv(df, frame_data, output_file):
-    """
-    Appends or saves new data to an Excel file using pandas DataFrame.
-
-    :param df: pandas DataFrame to append to, or an empty DataFrame to create
-    :param frame_data: list of dictionaries representing rows to append
-    :param output_file: name of the output Excel file
-    :param interval: interval at which to save data (0 to save after each append)
-    """
-    # TODO: Fix this so that it's appending and not overwriting.
-
-    sep = "\t"
-    if not isinstance(df, pd.DataFrame):
-        df = pd.DataFrame()
-    if df.empty:
-        df = pd.DataFrame(frame_data)
-        df.to_csv(output_file, index=False, header=True,sep=sep)
-    else:
-        df = df.append(frame_data, ignore_index=True)
-        #if interval == 0 or len(df) % interval == 0:
-        df.to_csv(output_file, index=False, header=True, sep=sep)
-    return df
-
-def save_key_columns(df, output_file):
-    key_columns = ['fps_count', 'timestamp',
-                   'shoulder_left', 'shoulder_right', 'shoulder_center',
-                   'elbow_left', 'elbow_right', 'elbow_center',
-                   'hip_left', 'hip_right', 'hip_center',
-                   'wrist_left', 'wrist_right', 'wrist_center',                   
-                   'shoulder_flexion', 'shoulder_abduction']
-    
-    # Select only the key_columns from the data frame if they exist.
-    ndf = df.loc[:, df.columns.isin(key_columns)]
-    df.to_csv(output_file, index=False, header=True, sep="\t")
-    
-    
-
-def write_snapshot_image(filename, image):
-    # Write the image to a file
-    status = cv2.imwrite(filename, image)
-    return status
-
 def handle_keyboard(image):
     # Allow some keyboard actions
     # p-Pause
@@ -123,13 +55,6 @@ def handle_keyboard(image):
     elif key & 0xFF == 27:
         return False
     return True
-
-
-def draw_fps(image, fps):
-    # Draw the FPS on the image
-    cv2.putText(image, "FPS: {:.2f}".format(fps), (10, 30),
-                cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 2)
-
 
 def draw_mediapipe(pose, image, total_frames, media_noface):
 
@@ -179,19 +104,6 @@ def draw_mediapipe_extended(pose, image, total_frames, display_calculations = Fa
             display_shoulder_text(image, shoulder_info)
 
     return frame
-
-
-def open_recording_file(record_file, frame_size, fps, location="../records/"):
-    # Define the codec and create a VideoWriter object
-    # Allow Recording only if the user previously specified a file name.
-    out_record_media = None
-    if(record_file != ""):
-        absolute_path = os.path.abspath(location)
-        create_directory(absolute_path)
-        full_path = os.path.join(absolute_path, record_file)
-        fourcc = cv2.VideoWriter_fourcc(*'mp4v')
-        out_record_media = cv2.VideoWriter(full_path, fourcc, fps, frame_size)
-    return out_record_media
 
 def mediapose_main(args, cap, mode, frame_size, fps):
 

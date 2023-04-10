@@ -15,6 +15,7 @@ from datetime import datetime, timezone
 
 from utils import *
 from mediapipe_main import *
+from camera_utils import *
 
 import logging
 
@@ -48,9 +49,8 @@ def setup_arguments():
     ap.add_argument("-n","--media_noface", type=bool, default=False, help="Run Mediapipe without additional processing and no face.")
     
     ap.add_argument("-l", "--log", type=str, default="info", help="Set the logging level. (debug, info, warning, error, critical)")
-    
-    # TODO: Add Camera arguments
-    # ap.add_argument("-c", "--camera", type=int, default=0, help="Set the camera to use. (0, 1, 2, etc.)")
+       
+    #ap.add_argument("-c", "--compare", type=str, default="", help="Setup comparison mode where we compare two videos.")
     
     ap.add_argument("-d","--display", type=bool, default=True, help="Run Mediapipe without dislaying the HUD/Overlay calculations.")
     
@@ -112,7 +112,7 @@ def main():
         #filename = "../videos/S02-0302-F-move kettle.MP4"
         #filename = "../videos/S02-0302-SL-move kettle-2.MP4"
         #filename = "../videos/S02-0302-O-move kettle.MP4"
-        filename = "../videos/quick_flexion_side_test.mp4"
+        #filename = "../videos/quick_flexion_side_test.mp4"
 
         cap, mode, fps_rate, frame_size = setup_video_capture(filename=filename,fps_rate=fps_rate)
         
