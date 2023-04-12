@@ -1,17 +1,9 @@
 # This utility file is used to store functions that are used in multiple files.
 # It includes functions specific to mediapipe managing data.
 
-import os
-import time
-from enum import Enum
 from collections import OrderedDict
 from datetime import datetime, timezone
-
-import cv2
 import pandas as pd
-import logging
-
-from shoulder_calculations import extract_pose_frames
 
 def setup_frame_data(fps_count):
     # This section manages the data collection.
@@ -20,16 +12,6 @@ def setup_frame_data(fps_count):
     odict['timestamp'] = datetime.now(
         timezone.utc).isoformat()
     return odict
-
-
-# This section manages the data collection.
-def stores_frame_data(shoulder_info, fps_count):
-    # This section manages the data collection.
-    odict = setup_frame_data(fps_count)
-    frame = extract_pose_frames(shoulder_info)
-    odict.update(frame)
-    return odict
-
 
 def save_to_csv(df, frame_data, output_file):
     """

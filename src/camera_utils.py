@@ -1,13 +1,34 @@
 # This file includes camera utilities related to opencv.
-import os
+
 import cv2
 import time
 import logging
 from enum import Enum
-
 class VideoMode(Enum):
     CAMERA = 0
     VIDEO = 1
+    
+class VideoCap_Info:
+    def __init__(self) -> None:
+        pass
+    
+    def __init__(self, cap, fps_rate, width, height, mode):
+        self.cap = cap
+        self.fps_rate = fps_rate
+        self.width = width
+        self.height = height
+        self.mode = mode
+        
+    def __str__(self):
+        return "VideoCap_Info: fps_rate=" + str(self.fps_rate) + " width=" + str(self.width) + " height=" + str(self.height) + " mode=" + str(self.mode)
+    
+    # Compare two VideoCap_Info objects.
+    def __eq__(self, o: object) -> bool:
+        if not isinstance(o, VideoCap_Info):
+            return False
+        return self.fps_rate == o.fps_rate and self.width == o.width and self.height == o.height and self.mode == o.mode
+
+
 
 def flip_image(image, should_flip):
     if(should_flip):

@@ -1,4 +1,3 @@
-from enum import Enum
 from collections import OrderedDict
 from datetime import datetime, timezone
 
@@ -6,8 +5,6 @@ import logging
 from fps_timer import FPS
 from camera_utils import *
 from file_utils import *
-
-
 
 # MediaPipe Includes
 import mediapipe as mp
@@ -23,6 +20,14 @@ mp_drawing = mp.solutions.drawing_utils
 mp_drawing_styles = mp.solutions.drawing_styles
 mp_pose = mp.solutions.pose
 
+# This section manages the data collection.
+def stores_frame_data(shoulder_info, fps_count):
+    # This section manages the data collection.
+    odict = setup_frame_data(fps_count)
+    frame = extract_pose_frames(shoulder_info)
+    odict.update(frame)
+    return odict
+
 def get_shoulder_info(results):
     # Get the shoulder info for the current frame
     shoulder_info = {}
@@ -31,8 +36,8 @@ def get_shoulder_info(results):
         landmarks = results.pose_landmarks
         # Calculate new positions and angles.
         shoulder_landmarks = get_landmarks(landmarks)
-
         logging.debug("Print Shoulder Information")
+        
         shoulder_info = get_shoulder_calculations(landmarks)
         logging.debug(shoulder_info)
     except:
@@ -69,8 +74,13 @@ def draw_mediapipe(pose, image, total_frames, media_noface):
 
     # Draw all landmarks ( TODO: This might become more shoulder based.)
     draw_landmarks(image, results)
+    shoulder_info = get_shoulder_info(results)
 
     frame = setup_frame_data(total_frames)
+    if(shoulder_info):
+        # This section manages the data collection.
+        frame = stores_frame_data(shoulder_info, total_frames)
+  
     return frame
 
 
@@ -105,11 +115,10 @@ def draw_mediapipe_extended(pose, image, total_frames, display_calculations = Fa
 
     return frame
 
-def mediapose_main(args, cap, mode, frame_size, fps):
+def mediapose_main(args, cap, mode, frame_size, fps, check_fps = False):
 
     df = None
-    total_frames = 0
-    check_fps = False
+    total_frames = 0    
     # Write the DataFrame to an Excel file
     file_time = time.strftime("%Y_%m_%d-%H_%M_%S_")
     output_filename = file_time + args['output'] if(args['timestamp']) else args['output']
@@ -126,9 +135,8 @@ def mediapose_main(args, cap, mode, frame_size, fps):
     out_record_media = open_recording_file(
         args['record_media'], frame_size, fps)
 
-    # The first frame indicates if the camera or video is working.    
-
-    with FPS() as fps, mp_pose.Pose(min_detection_confidence=0.5, min_tracking_confidence=0.5) as pose:
+    # The first frame indicates if the camera or video is working.
+    with FPS() as fps, mp_pose.Pose(min_detection_confidence=0.8, min_tracking_confidence=0.8) as pose:
         while cap.isOpened():
                        
             success, image = cap.read()

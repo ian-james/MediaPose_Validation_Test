@@ -1,4 +1,6 @@
 import math
+import logging
+
 from mediapipe.python.solutions.pose import PoseLandmark
 from mediapipe.tasks.python.components.containers import Landmark
 

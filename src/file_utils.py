@@ -21,12 +21,6 @@ def add_extension(filename, extension=".csv"):
     else:
         return filename + extension
 
-
-class VideoMode(Enum):
-    CAMERA = 0
-    VIDEO = 1
-
-
 def flip_image(image, should_flip):
     if(should_flip):
         image = cv2.flip(image, 1)
