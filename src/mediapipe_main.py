@@ -84,7 +84,7 @@ def draw_mediapipe(pose, image, total_frames, media_noface):
     return frame
 
 
-def draw_mediapipe_extended(pose, image, total_frames, display_calculations = False):
+def draw_mediapipe_extended(pose, image, total_frames, hide_display_calculations = False):
 
     frame = setup_frame_data(total_frames)
     disable_writing(image)
@@ -109,7 +109,7 @@ def draw_mediapipe_extended(pose, image, total_frames, display_calculations = Fa
         #       They refer to this a returning to selfie-mode.
         display_shoulder_positions(image, shoulder_info)
 
-        if(display_calculations):
+        if(not hide_display_calculations):
             # Display 2D text on the screen.
             display_shoulder_text(image, shoulder_info)
 
@@ -136,7 +136,10 @@ def mediapose_main(args, cap, mode, frame_size, fps, check_fps = False):
         args['record_media'], frame_size, fps)
 
     # The first frame indicates if the camera or video is working.
-    with FPS() as fps, mp_pose.Pose(min_detection_confidence=0.8, min_tracking_confidence=0.8) as pose:
+    mdc = args['min_detection_confidence']
+    mtc = args['min_tracking_confidence']
+    
+    with FPS() as fps, mp_pose.Pose(min_detection_confidence=mdc, min_tracking_confidence=mtc) as pose:
         while cap.isOpened():
                        
             success, image = cap.read()
@@ -176,7 +179,7 @@ def mediapose_main(args, cap, mode, frame_size, fps, check_fps = False):
             else:
                 # Do our version of the pose estimation.
                 frame = draw_mediapipe_extended(
-                    pose, image, total_frames, args['display'])
+                    pose, image, total_frames, args['no_display'])
 
             frame_data.append(frame)           
 

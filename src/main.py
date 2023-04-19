@@ -43,36 +43,40 @@ def setup_arguments():
     ap = argparse.ArgumentParser()
     
     ##################### Debugging arguments.
-    # Add the debug mode for more verbose output in terminal.
-    # Add an option to run Mediapipe without additional processing.
-    ap.add_argument("-m","--media", type=bool, default=False, help="Run Mediapipe without additional processing.")
-
-    # Add an option to run Mediapipe without additional processing.
-    ap.add_argument("-n","--media_noface", type=bool, default=True, help="Run Mediapipe without additional processing and no face.")
-    
     ap.add_argument("-l", "--log", type=str, default="info", help="Set the logging level. (debug, info, warning, error, critical)")
-    
-    # Compare two capture either videos or camera..
-    ap.add_argument("-c", "--compare", type=bool, default=False, help="Compare two video mode")
-    
-    # Add a filename to compare.
-    #"../videos/quick_flexion_side_test.mp4",
-    # "../videos/empty_scene.mp4",
-    ap.add_argument("-cf", "--compare_file", type=str, default="",
-                    help="Setup comparison mode where we compare two videos.")
+  
     
     # Add an option to load a video file instead of a camera.
-    #"../videos/quick_flexion_test.mp4"
-    #quick_flexion_test.mp4
-    #"../videos/empty_scene.mp4"
-    ap.add_argument("-f", "--filename", type=str, default="",
+    ap.add_argument("-f", "--filename", type=str, default="../videos/quick_flexion_test.mp4",
                     help="Load a video file instead of a camera.")
-
     
-    ap.add_argument("-d","--display", type=bool, default=False, help="Run Mediapipe without dislaying the HUD/Overlay calculations.")
+    # Compare two capture either videos or camera..
+    ap.add_argument("-c", "--compare", action="store_true",
+                    help="Compare two video mode")
+
+    ap.add_argument("-cf", "--compare_file", type=str, default="../videos/quick_flexion_side_test.mp4",
+                    help="Setup comparison mode where we compare two videos.")
+
+    # Add the debug mode for more verbose output in terminal.
+    # Add an option to run Mediapipe without additional processing.
+    ap.add_argument("-m", "--media", action="store_true",
+                    help="Run Mediapipe without additional processing.")
+
+    # Add an option to run Mediapipe without additional processing.
+    ap.add_argument("-n", "--media_noface", action="store_true",
+                    help="Run Mediapipe without additional processing and no face.")
+    
+    ap.add_argument("-nd","--no_display", action="store_true", help="Run Mediapipe without dislaying the HUD/Overlay calculations.")
     
     # Add an option to run check flag for debugging.
-    ap.add_argument('-fps', '--check_fps', type=bool, default=False, help='Check FPS option.')
+    ap.add_argument('-fps', '--check_fps', action="store_true", help='Check FPS option.')
+    
+    # Add an option to set the minimum detection confidence
+    ap.add_argument('-md', '--min_detection_confidence', type=float, default=0.8, help="Minimum detection confidence.")
+                    
+    # Add an option to set the minimum tracking confidence
+    ap.add_argument('-mt', '--min_tracking_confidence', type=float,
+                    default=0.8, help="Minimum tracking confidence.")
     
     ##################### Output arguments.    
     # Add the output file argument
@@ -80,7 +84,7 @@ def setup_arguments():
                     default="saved_frame_data", help="Output file name")
     
     # Add time to the output file argument
-    ap.add_argument("-t", "--timestamp", type=bool, default=False,
+    ap.add_argument("-t", "--timestamp", action="store_true",
                     help="Output append time to file name")
        
     # Add an option to record the video
@@ -96,7 +100,7 @@ def setup_arguments():
     ap.add_argument("-i", "--interval", type=int, default=10, help="Save Frame at interval of x frames.")
     
     # Add time to the output file argument
-    ap.add_argument("-p", "--mirror", type=bool, default=False, help="Flip the image to mirror your perspective.")
+    ap.add_argument("-p", "--mirror", action="store_true", help="Flip the image to mirror your perspective.")
 
     # Add the preferred fps rate
     ap.add_argument("-z","--rate", type=float, default=0, help="Frame rate of the video")
@@ -110,6 +114,8 @@ def main():
     ap = setup_arguments()
     # Parse the arguments
     args = vars(ap.parse_args())
+    
+    print(args)
 
     main_cap = VideoCap_Info(None, 0, 0, 0, None)
     second_cap = VideoCap_Info(None, 0, 0, 0, None)
@@ -122,11 +128,10 @@ def main():
         logging.info("Starting to write information.")
         fps_rate = args['rate']
         filename = ""
-        filename = args['filename']
-        #filename = "../videos/S02-0302-F-move kettle.MP4"
+        filename = args['filename']        
         #filename = "../videos/S02-0302-SL-move kettle-2.MP4"
         #filename = "../videos/S02-0302-O-move kettle.MP4"
-        #filename = "../videos/quick_flexion_side_test.mp4"        
+        #filename = "../videos/quick_flexion_side_test.mp4"            
         cap, mode, fps_rate, frame_size = setup_video_capture(filename=filename,fps_rate=fps_rate)        
         main_cap = VideoCap_Info(cap, fps_rate, frame_size[0], frame_size[1], mode)
         
