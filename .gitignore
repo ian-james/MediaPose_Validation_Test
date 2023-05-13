@@ -1,6 +1,5 @@
-mp_env/
-n_env/
-__pycache_/
-*.xlsx
-todo.txt
-src/__pycache__/*
+records/*
+videos/created/*
+videos/patient_private/
+src/output.csv
+src/.vscode/
