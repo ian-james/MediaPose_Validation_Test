@@ -46,17 +46,25 @@ def get_shoulder_info(results):
 
     return shoulder_info
 
-def handle_keyboard(image):
+def handle_keyboard(image,out_record, record_snapshot, frame_size, fps):
     # Allow some keyboard actions
     # p-Pause
     # esc-exit
     key = cv2.waitKey(1)
     if key == ord('p'):
-        cv2.waitKey(3000)
+        cv2.waitKey(5000)
     elif(key == ord('s')):        
         snapshot_file =  time.strftime("%Y_%m_%d-%H_%M_%S_") + "_snapshot.png"        
         write_snapshot_image(get_file_path(snapshot_file), image)      
-        pass    
+    elif(key == ord('r')):
+        if(record_snapshot):
+            record_snapshot = False
+            if(out_record):
+                out_record.release()
+        else:            
+            record_snapshot = True
+            snapshot_record_file = time.strftime("%Y_%m_%d-%H_%M_%S_") + "_snapshot_rec.mp4"
+            out_record = open_recording_file(snapshot_record_file, frame_size, fps)    
     elif key & 0xFF == 27:
         return False
     return True
@@ -118,7 +126,8 @@ def draw_mediapipe_extended(pose, image, total_frames, hide_display_calculations
 def mediapose_main(args, cap, mode, frame_size, fps, check_fps = False):
 
     df = None
-    total_frames = 0    
+    total_frames = 0
+    record_snapshot = False  
     # Write the DataFrame to an Excel file
     file_time = time.strftime("%Y_%m_%d-%H_%M_%S_")
     output_filename = file_time + args['output'] if(args['timestamp']) else args['output']
@@ -134,6 +143,7 @@ def mediapose_main(args, cap, mode, frame_size, fps, check_fps = False):
     out_record = open_recording_file(args['record'], frame_size, fps)
     out_record_media = open_recording_file(
         args['record_media'], frame_size, fps)
+    out_record_snapshot = None
 
     # The first frame indicates if the camera or video is working.
     mdc = args['min_detection_confidence']
@@ -189,7 +199,7 @@ def mediapose_main(args, cap, mode, frame_size, fps, check_fps = False):
                 
             df = save_to_csv(df, frame_data, output_full_file)
             save_key_columns(df, add_extension(path_to_file + "_keycols"))
-            if(not handle_keyboard(image)):                                
+            if(not handle_keyboard(image, out_record_snapshot, record_snapshot, frame_size, fps)):
                 break
 
     if(out_record_media):
