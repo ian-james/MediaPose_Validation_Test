@@ -30,8 +30,8 @@ def save_to_csv(df, frame_data, output_file):
     if df.empty:
         df = pd.DataFrame(frame_data)
         df.to_csv(output_file, index=False, header=True, sep=sep)
-    else:
-        df = df.append(frame_data, ignore_index=True)
+    else:        
+        df = pd.concat( [df,pd.Series(frame_data)], ignore_index=True)
         #if interval == 0 or len(df) % interval == 0:
         df.to_csv(output_file, index=False, header=True, sep=sep)
     return df

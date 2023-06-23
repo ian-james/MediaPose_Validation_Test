@@ -16,25 +16,9 @@ from datetime import datetime, timezone
 from utils import *
 from mediapipe_main import *
 from camera_utils import *
+from log import *
 
 from comparative_main import comparative_main
-
-import logging
-
-# Debugging Levels
-# DEBUG: Detailed information, typically of interest only when diagnosing problems.
-# INFO: Confirmation that things are working as expected.
-# WARNING: An indication that something unexpected happened or indicative of some problem in the near future(e.g. ‘disk space low’). The software is still working as expected.
-# ERROR: Due to a more serious problem, the software has not been able to perform some function.
-# CRITICAL: A very serious error, indicating that the program itself may be unable to continue running.
-
-def set_log_level(level):
-    """Set the logging level based on the specified string"""
-    numeric_level = getattr(logging, level.upper(), None)
-    if not isinstance(numeric_level, int):
-        raise ValueError(f"Invalid log level: {level}")
-    logging.basicConfig(level=numeric_level,
-                        format='%(asctime)s - %(levelname)s - %(message)s')
 
 # ******************************************* Arguments Sections
 def setup_arguments():
@@ -47,7 +31,8 @@ def setup_arguments():
   
     
     # Add an option to load a video file instead of a camera.
-    ap.add_argument("-f", "--filename", type=str, default="../videos/quick_flexion_test.mp4",
+    #../videos/tests/quick_flexion_test.mp4
+    ap.add_argument("-f", "--filename", type=str, default="",
                     help="Load a video file instead of a camera.")
     
     # Compare two capture either videos or camera..
@@ -122,13 +107,13 @@ def main():
         
     # For webcam input:
     # Start of the main program or loop
-    try:
-        
+    try:        
         set_log_level(args['log'])
         logging.info("Starting to write information.")
         fps_rate = args['rate']
         filename = ""
-        filename = args['filename']        
+        filename = args['filename']   
+        print(filename)     
         #filename = "../videos/S02-0302-SL-move kettle-2.MP4"
         #filename = "../videos/S02-0302-O-move kettle.MP4"
         #filename = "../videos/quick_flexion_side_test.mp4"            

@@ -28,8 +28,6 @@ class VideoCap_Info:
             return False
         return self.fps_rate == o.fps_rate and self.width == o.width and self.height == o.height and self.mode == o.mode
 
-
-
 def flip_image(image, should_flip):
     if(should_flip):
         image = cv2.flip(image, 1)
@@ -85,7 +83,6 @@ def calculate_fps():
         fps_count = 0
         start_time = time.time()
     return fps
-
 
 def draw_fps(image, fps):
     # Draw the FPS on the image
