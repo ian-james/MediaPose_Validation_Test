@@ -3,3 +3,4 @@ videos/created/*
 videos/patient_private/
 src/output.csv
 src/.vscode/
+src/__pycache__/*
