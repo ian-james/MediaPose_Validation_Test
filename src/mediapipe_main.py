@@ -141,8 +141,7 @@ def mediapose_main(args, cap, mode, frame_size, fps, check_fps = False):
     # Define the codec and create a VideoWriter object
     # Allow Recording only if the user previously specified a file name.
     out_record = open_recording_file(args['record'], frame_size, fps)
-    out_record_media = open_recording_file(
-        args['record_media'], frame_size, fps)
+    out_record_media = open_recording_file(args['record_media'], frame_size, fps)
     out_record_snapshot = None
 
     # The first frame indicates if the camera or video is working.
