@@ -191,6 +191,7 @@ def mediapose_main(args, cap, mode, frame_size, fps, check_fps = False):
 
             frame_data.append(frame)           
 
+            cv2.namedWindow("MediaPipe Pose", cv2.WINDOW_NORMAL)
             cv2.imshow('MediaPipe Pose', image)
             if(out_record_media):
                 out_record_media.write(image)

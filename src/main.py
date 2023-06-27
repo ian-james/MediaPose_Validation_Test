@@ -31,7 +31,7 @@ def setup_arguments():
     
     # Add an option to load a video file instead of a camera.
     #../videos/tests/quick_flexion_test.mp4
-    ap.add_argument("-f", "--filename", type=str, default="",
+    ap.add_argument("-f", "--filename", type=str, default="", #../videos/tests/quick_flexion_test.mp4",
                     help="Load a video file instead of a camera.")
     
     # Compare two capture either videos or camera..

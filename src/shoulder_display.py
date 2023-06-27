@@ -128,6 +128,8 @@ def display_shoulder_text(image, shoulder_info):
     cleft = get_hand_color(not swap_colors )
     cright = get_hand_color(False or swap_colors)    
     
-    display_shoulder_text_angles(image, shoulder_info, "left", start_x=x, start_y=y, y_offset=y_offset,hand_color=cleft)
-    display_shoulder_text_angles(image, shoulder_info, "right", start_x=int(
+    # Note Right shoulder will display as left side of mirror.
+    # So 2D text must be put on the opposite side.
+    display_shoulder_text_angles(image, shoulder_info, "right", start_x=x, start_y=y, y_offset=y_offset,hand_color=cleft)
+    display_shoulder_text_angles(image, shoulder_info, "left", start_x=int(
         width*0.75), start_y=y, y_offset=y_offset, hand_color=cright)
