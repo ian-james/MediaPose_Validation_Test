@@ -66,3 +66,18 @@ def open_recording_file(record_file, frame_size, fps, location="../records/"):
         fourcc = cv2.VideoWriter_fourcc(*'mp4v')
         out_record_media = cv2.VideoWriter(full_path, fourcc, fps, frame_size)
     return out_record_media
+
+
+def open_image(image_path):
+    try:
+        # Read the image file
+        image = cv2.imread(image_path)
+
+        if image is None:
+            raise ValueError("Error reading image file.")
+
+        return image
+
+    except Exception as e:
+        print(f"An error occurred opening the image: {image_path}, {str(e)}")
+        return None

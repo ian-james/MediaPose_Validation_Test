@@ -67,18 +67,21 @@ def display_shoulder_text_property(image, x, y, shoulder_name, angle, hand_color
     cv2.putText(image, f"{shoulder_name}: {angle:.2f}",(x, y), font, 0.5, hand_color, 2, cv2.LINE_AA)
 
 # This function is used to display the shoulder calculations on the screen for either "left" or "right" shoulder.
-def display_shoulder_text_angles(image, shoulder_info, shoulder_str="left",start_x=10, start_y=10, y_offset=20, hand_color=(255, 255, 255)):
+def display_shoulder_text_angles(image, shoulder_info, shoulder_str="left",start_x=10, start_y=10, y_offset=20, hand_color=(255, 255, 255),short_form = True):
+   
     # Display Each of the calculations on the screen for now.
     x = start_x
-    display_shoulder_text_property(image, x, start_y, "flexion", shoulder_info['flexion_'+shoulder_str], hand_color)
+    display_shoulder_text_property(
+        image, x, start_y, "flexion", shoulder_info['flexion_'+shoulder_str], hand_color)
     display_shoulder_text_property(image, x, start_y-y_offset, "abduction",
-                                   shoulder_info['abduction_'+shoulder_str],hand_color)
-    display_shoulder_text_property(image, x, start_y-y_offset*2,"extension",
-                                   shoulder_info['extension_'+shoulder_str], hand_color)
-    display_shoulder_text_property(image, x, start_y-y_offset*3, "internal_rot",
-                                    shoulder_info['internal_rotation_'+shoulder_str], hand_color)
-    display_shoulder_text_property(image, x, start_y-y_offset*4, "external_rot",
-                                   shoulder_info['external_rotation_'+shoulder_str], hand_color)
+                                   shoulder_info['abduction_'+shoulder_str], hand_color)
+    if(short_form == False):
+        display_shoulder_text_property(image, x, start_y-y_offset*2,"extension",
+                                    shoulder_info['extension_'+shoulder_str], hand_color)
+        display_shoulder_text_property(image, x, start_y-y_offset*3, "internal_rot",
+                                        shoulder_info['internal_rotation_'+shoulder_str], hand_color)
+        display_shoulder_text_property(image, x, start_y-y_offset*4, "external_rot",
+                                    shoulder_info['external_rotation_'+shoulder_str], hand_color)
 
 # This function is used to display the shoulder landmarks that we have added and are not included in the MediaPipe Pose.
 # Note: Shoulder additions are estimated, so may occur outside of the image.

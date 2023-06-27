@@ -28,7 +28,6 @@ def setup_arguments():
     
     ##################### Debugging arguments.
     ap.add_argument("-l", "--log", type=str, default="info", help="Set the logging level. (debug, info, warning, error, critical)")
-  
     
     # Add an option to load a video file instead of a camera.
     #../videos/tests/quick_flexion_test.mp4

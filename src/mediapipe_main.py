@@ -183,8 +183,7 @@ def mediapose_main(args, cap, mode, frame_size, fps, check_fps = False):
                 draw_fps(image, tfps)
 
             elif(media_only):
-                frame = draw_mediapipe(
-                    pose, image, total_frames, media_noface)
+                frame = draw_mediapipe(pose, image, total_frames, media_noface)
             else:
                 # Do our version of the pose estimation.
                 frame = draw_mediapipe_extended(
