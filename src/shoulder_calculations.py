@@ -194,7 +194,7 @@ def calc_shoulder_abduction(elbow, shoulder,hip):
         # Suggest Wrist - Elbow
         shoulder_abduction = 90-math.degrees(math.atan2(elbow.y - shoulder.y, elbow.x - shoulder.x))
         #print("Calculated SA", shoulder_abduction)
-        return shoulder_abduction
+        return abs(shoulder_abduction)
     except Exception as e:
         print("An error occurred while trying to calculate shoulder abudction:", e)
     return None

@@ -38,12 +38,14 @@ def save_to_csv(df, frame_data, output_file):
 
 
 def save_key_columns(df, output_file):
-    key_columns = ['fps_count', 'timestamp',
-                   'shoulder_left', 'shoulder_right', 'shoulder_center',
-                   'elbow_left', 'elbow_right', 'elbow_center',
-                   'hip_left', 'hip_right', 'hip_center',
-                   'wrist_left', 'wrist_right', 'wrist_center',
-                   'shoulder_flexion', 'shoulder_abduction']
+    # key_columns = ['fps_count', 'timestamp',
+    #                'shoulder_left', 'shoulder_right', 'shoulder_center',
+    #                'elbow_left', 'elbow_right', 'elbow_center',
+    #                'hip_left', 'hip_right', 'hip_center',
+    #                'wrist_left', 'wrist_right', 'wrist_center',
+    #                'shoulder_flexion', 'shoulder_abduction']
+    
+    key_columns = ['fps_count','timestamp''shoulder_flexion', 'shoulder_abduction']
 
     # Select only the key_columns from the data frame if they exist.
     ndf = df.loc[:, df.columns.isin(key_columns)]

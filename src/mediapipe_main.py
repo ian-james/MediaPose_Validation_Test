@@ -148,6 +148,8 @@ def mediapose_main(args, cap, mode, frame_size, fps, check_fps = False):
     mdc = args['min_detection_confidence']
     mtc = args['min_tracking_confidence']
     
+    cv2.namedWindow("MediaPipe Pose", cv2.WINDOW_NORMAL)
+    
     with FPS() as fps, mp_pose.Pose(min_detection_confidence=mdc, min_tracking_confidence=mtc) as pose:
         while cap.isOpened():
                        
@@ -183,15 +185,14 @@ def mediapose_main(args, cap, mode, frame_size, fps, check_fps = False):
                 draw_fps(image, tfps)
 
             elif(media_only):
-                frame = draw_mediapipe(
-                    pose, image, total_frames, media_noface)
+                frame = draw_mediapipe(pose, image, total_frames, media_noface)
             else:
                 # Do our version of the pose estimation.
                 frame = draw_mediapipe_extended(
                     pose, image, total_frames, args['no_display'])
 
-            frame_data.append(frame)           
-
+            frame_data.append(frame)
+            
             cv2.imshow('MediaPipe Pose', image)
             if(out_record_media):
                 out_record_media.write(image)

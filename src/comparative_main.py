@@ -28,7 +28,7 @@ from mediapipe_main import handle_keyboard
 # check FPS will allow you to check the two videos with the FPS information.
 # To compare the two videos
 # 1 Play just the two videos.
-## fps_check = True
+# fps_check = True
 # Alternatively
 
 # IF COMPARE MODE IS ON
@@ -68,7 +68,7 @@ def comparative_main(args, main_cap, second_cap, check_fps=False):
 
     # The first frame indicates if the camera or video is working.
     mdc = args['min_detection_confidence']
-    mtc = args['min_tracking_confidence']    
+    mtc = args['min_tracking_confidence']
     with FPS() as fps, mp_pose.Pose(model_complexity=2, min_detection_confidence=mdc, min_tracking_confidence=mtc) as pose1, \
             mp_pose.Pose(model_complexity=2, min_detection_confidence=mdc, min_tracking_confidence=mtc) as pose2:
         while main_cap.cap.isOpened() and second_cap.cap.isOpened():
@@ -77,7 +77,7 @@ def comparative_main(args, main_cap, second_cap, check_fps=False):
             success2, image2 = second_cap.cap.read()
             fps.update()
 
-            if(not success1 or not success2):
+            if (not success1 or not success2):
                 logging.info("Finished the video.")
                 break
 
@@ -92,18 +92,20 @@ def comparative_main(args, main_cap, second_cap, check_fps=False):
             # Display the camera and the FPS.
             # Display mediapipe without additional calcualtions.
             # Display mediapipe with additional calculations.
-            if(check_fps == True):
+            if (check_fps == True):
                 frame1 = setup_normal_frame(total_frames, fps, 1)
                 logging.debug("FPS: {}".format(fps.get_fps()))
                 image = cv2.hconcat([image1, image2])
                 image, should_flip = flip_image(image, should_flip)
                 draw_fps(image, fps.get_fps())
-            elif(media_only):
-                if(args['compare_file'] == args['filename']):
+            elif (media_only):
+                if (args['compare_file'] == args['filename']):
                     # Same File with media only, do media vs extended.
-                    frame1 = draw_mediapipe(pose1, image1, total_frames, media_noface)
+                    frame1 = draw_mediapipe(
+                        pose1, image1, total_frames, media_noface)
                     frame1['video'] = 1
-                    frame2 = draw_mediapipe_extended(pose2, image2, total_frames, False)
+                    frame2 = draw_mediapipe_extended(
+                        pose2, image2, total_frames, False)
                     frame2['video'] = 2
                 else:
                     # Different files with media only, do media vs media.
@@ -115,7 +117,7 @@ def comparative_main(args, main_cap, second_cap, check_fps=False):
 
                 image = cv2.hconcat([image1, image2])
             else:
-                if(args['compare_file'] == args['filename']):
+                if (args['compare_file'] == args['filename']):
                     # Same File with extended only, Do normal vs extended.
                     frame1 = setup_normal_frame(total_frames, fps, 1)
                     frame2 = draw_mediapipe_extended(
@@ -132,24 +134,24 @@ def comparative_main(args, main_cap, second_cap, check_fps=False):
 
                 image = cv2.hconcat([image1, image2])
 
-            if(frame1):
+            if (frame1):
                 frame_data.append(frame1)
-            if(frame2):
+            if (frame2):
                 frame_data.append(frame2)
 
             cv2.imshow('MediaPipe Pose', image)
-            if(out_record_media):
+            if (out_record_media):
                 out_record_media.write(image)
 
             df = save_to_csv(df, frame_data, output_full_file)
             save_key_columns(df, add_extension(path_to_file + "_keycols"))
-            if(not handle_keyboard(image)):
+            if (not handle_keyboard(image)):
                 break
 
-    if(out_record_media):
+    if (out_record_media):
         out_record_media.release()
 
-    if(out_record):
+    if (out_record):
         out_record.release()
 
     logging.info("Writing excel file from the CSV file.")
