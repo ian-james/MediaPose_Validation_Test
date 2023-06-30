@@ -4,7 +4,7 @@ import streamlit as st
 import os
 import cv2
 import numpy as np
-import argparse
+
 
 from utils import *
 from camera_utils import *
@@ -37,7 +37,85 @@ def convert_to_mp4(video_path, output_path, codec='libx264'):
         
     return False
 
-def debug_options():
+def main():
+    st.title("Video Player with Drawing")      
+
+    ################################################################################
+    # MediaPipe Options
+    st.sidebar.markdown("## MediaPipe Options")
+
+    st.sidebar.slider("Minimum detection confidence",
+                      min_value=0.0, max_value=1.0, value=0.8, step=0.1)
+
+    st.sidebar.slider("Minimum tracking confidence",
+                      min_value=0.0, max_value=1.0, value=0.8, step=0.1)
+    
+    ################################################################################
+    # Program Options
+    st.sidebar.markdown("## Program Options")
+    mode_src = st.sidebar.selectbox(
+        "Select the mode", ['Camera', 'Video', 'Image'])
+    if (mode_src == 'Image'):
+        uploaded_file = st.file_uploader("Upload an image file", type=["jpg", "png", "jpeg"])
+        if uploaded_file is not None:
+            # To read file as bytes:
+            st.write(f"The file is {uploaded_file}")
+            image = Image.open(uploaded_file)
+            st.image(image=image, caption="Uploaded Image")
+
+    elif (mode_src == 'Video'):
+        uploaded_file_object = st.file_uploader("Upload a video file", type=["mp4", "avi", "mov"])
+
+        if (uploaded_file_object):
+            # os.path.join(, selected_filename)
+            
+            uploaded_file = os.path.join("./videos/tests/", uploaded_file_object.name)
+            st.success(f"File selected: {uploaded_file}")
+
+            output_file = change_filename(uploaded_file, "test_output")
+            st.write(f"Output file: {output_file}")
+
+            res = convert_to_mp4(uploaded_file, output_file)
+
+            if (res):
+                st.success(f"{uploaded_file} successfully converted.")
+                st.write(f"File changed: {output_file}")
+            else:
+                st.error(f"{uploaded_file} failed to convert.")
+            
+            file = output_file
+            if os.path.exists(file):
+                st.write(f"Output file exists {file}")
+                video_file = open(file, 'rb')
+                if (video_file):
+                    st.write("Video file is open")
+                    video_bytes = video_file.read()
+                    st.video(video_bytes)
+                else:
+                    st.write(f"Output file does not exist {file}")
+            else:
+                st.write(f"Video file is not open {output_file}")
+                
+                
+    ############################################################################
+    # Recording Options and non-file upload.
+    record = st.sidebar.checkbox("Record the video", value=False)
+    save_file = None
+    if (record):
+        save_file = st.sidebar.text_input("Enter the file name", value="record_video.mp4")
+
+    comparative_mode = st.sidebar.checkbox(
+        "Compare two video mode", value=False)
+
+    mode_src2 = st.sidebar.selectbox("Select second Source:", [
+                                     'Off', 'Camera' 'Video', 'Image'])
+    if (mode_src2 != 'Off'):
+        st.failure("Not implemented yet.")
+
+    take_snapshot = st.sidebar.button("Take Snapshot")
+    
+    ################################################################################
+    # Debug Options
     st.sidebar.markdown("## Debugging Controls")
 
     debug_levels = ['debug', 'info', 'warning', 'error', 'critical']
@@ -48,93 +126,6 @@ def debug_options():
 
     st.sidebar.checkbox("Check FPS option", value=False)
 
-
-def mediapipe_options():
-    st.sidebar.markdown("## MediaPipe Options")
-    
-    st.sidebar.slider("Minimum detection confidence",
-                      min_value=0.0, max_value=1.0, value=0.8, step=0.1)
-
-    st.sidebar.slider("Minimum tracking confidence",
-                      min_value=0.0, max_value=1.0, value=0.8, step=0.1)
-
-def program_options():
-    st.sidebar.markdown("## Program Options")
-    mode_src = st.sidebar.selectbox("Select the mode", ['Camera', 'Video', 'Image'])
-    if (mode_src == 'Image'):
-        setup_image_mode()
-    elif (mode_src == 'Video'):
-        setup_video_mode()
-        
-    record = st.sidebar.checkbox("Record the video", value=False)
-    save_file = None
-    if(record):
-        save_file = st.sidebar.text_input("Enter the file name", value="record_video.mp4")
-        
-    comparative_mode = st.sidebar.checkbox("Compare two video mode", value=False)
-    
-    mode_src2 = st.sidebar.selectbox("Select second Source:", ['Off', 'Camera' 'Video', 'Image'])
-    if( mode_src2 != 'Off'):
-        st.failure("Not implemented yet.")    
-        
-    take_snapshot = st.sidebar.button("Take Snapshot")
-        
-    
-def setup_image_mode():
-   
-    uploaded_file = st.file_uploader("Upload an image file", type=["jpg", "png", "jpeg"])
-    if uploaded_file is not None:
-        # To read file as bytes:
-        st.write(f"The file is {uploaded_file}")
-        image = Image.open(uploaded_file)
-        st.image(image=image, caption="Uploaded Image")
-        
-        
-@st.cache_data  # Add the caching decorator
-def load_movie(uploaded_file_object):
-    uploaded_file=os.path.join("./videos/tests/", uploaded_file_object.name)
-    st.success(f"File selected: {uploaded_file}")
-
-    output_file=change_filename(uploaded_file, "test_output")
-    st.write(f"Output file: {output_file}")
-
-    res=convert_to_mp4(uploaded_file, output_file)
-
-    if (res):
-        st.success(f"{uploaded_file} successfully converted.")
-        st.write(f"File changed: {output_file}")
-    else:
-        st.error(f"{uploaded_file} failed to convert.")
-        
-    return output_file
-   
-    
-def setup_video_mode():
-    uploaded_file_object = st.file_uploader("Upload a video file", type=["mp4", "avi", "mov"])    
-    
-    if (uploaded_file_object):
-        # os.path.join(, selected_filename)
-        output_file = load_movie(uploaded_file_object)
-        file = output_file
-        if os.path.exists(file):
-            st.write(f"Output file exists {file}")
-            video_file = open(file, 'rb')
-            if (video_file):
-                st.write("Video file is open")
-                video_bytes = video_file.read()
-                st.video(video_bytes)
-            else:
-                st.write(f"Output file does not exist {file}")
-        else:
-            st.write(f"Video file is not open {output_file}")
-
-
-def main():
-    st.title("Video Player with Drawing")      
-
-    mediapipe_options()
-    program_options()
-    debug_options()
     
 if __name__ == '__main__':
     main()
