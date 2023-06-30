@@ -133,16 +133,13 @@ def main():
                 # Do our version of the pose estimation.
                 frame = draw_mediapipe_extended(pose, image, 0, False)
               # Press 'q' to exit            
-            
-            frame_data.append(frame)
-            df = save_to_csv(df, frame_data, output_full_file)
-        
+
+            df = add_dataframe(df,frame)                    
             
         display_images_side_by_side(original_image, image,"Original Image", "Processed Image")                
         
         while(cv2.waitKey(1) & 0xFF != ord('q')):
-            continue
-            
+            continue            
         
     except Exception as e:
         logging.error(f"Failed to read image options. {e}")

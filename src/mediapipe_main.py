@@ -126,6 +126,7 @@ def draw_mediapipe_extended(pose, image, total_frames, hide_display_calculations
 def mediapose_main(args, cap, mode, frame_size, fps, check_fps = False):
 
     df = None
+    idf = None
     total_frames = 0
     record_snapshot = False  
     # Write the DataFrame to an Excel file
@@ -168,19 +169,17 @@ def mediapose_main(args, cap, mode, frame_size, fps, check_fps = False):
                 out_record.write(image)
           
             should_flip = needs_flip
-            total_frames += 1            
-            keep_working = True
-            frame_data = []
-
+            total_frames += 1                        
+        
             # Check for the multiple types of display.
             # Display the camera and the FPS.
             # Display mediapipe without additional calcualtions.
             # Display mediapipe with additional calculations.
-            if(check_fps == True):
+            if(check_fps):
                 frame = setup_frame_data(total_frames)
                 tfps = fps.get_fps()
                 frame['fps'] = tfps
-                logging.debug("FPS: {}".format(tfps))
+                logging.debug(f"FPS: {tfps}")
                 image, should_flip = flip_image(image, should_flip)
                 draw_fps(image, tfps)
 
@@ -188,17 +187,15 @@ def mediapose_main(args, cap, mode, frame_size, fps, check_fps = False):
                 frame = draw_mediapipe(pose, image, total_frames, media_noface)
             else:
                 # Do our version of the pose estimation.
-                frame = draw_mediapipe_extended(
-                    pose, image, total_frames, args['no_display'])
-
-            frame_data.append(frame)
+                frame = draw_mediapipe_extended(pose, image, total_frames, args['no_display'])
             
             cv2.imshow('MediaPipe Pose', image)
             if(out_record_media):
                 out_record_media.write(image)
                 
-            df = save_to_csv(df, frame_data, output_full_file)
-            save_key_columns(df, add_extension(path_to_file + "_keycols"))
+            df = add_dataframe(df, frame)
+            idf = add_key_columns(idf, frame)                        
+            
             if(not handle_keyboard(image, out_record_snapshot, record_snapshot, frame_size, fps)):
                 break
 
@@ -210,4 +207,6 @@ def mediapose_main(args, cap, mode, frame_size, fps, check_fps = False):
         
     logging.info("Writing excel file from the CSV file.")    
     # Make a copy of Excel    
+    save_to_csv(df, output_full_file)
+    save_to_csv(idf, add_extension(path_to_file + "_keycols"))
     copy_csv_to_excel(output_full_file, add_extension(path_to_file, ".xlsx"))

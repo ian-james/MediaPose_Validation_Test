@@ -189,7 +189,7 @@ def calc_shoulder_flexion(elbow, shoulder, hip):
 # Params: Elbow and Shoulder MediaPipe Landmarks or NormalizedLandmarks
 # Error Result: An empty object
 # Success Result: An estimate of the shoulder abduction
-def calc_shoulder_abduction(elbow, shoulder,hip):
+def calc_shoulder_abduction_old(elbow, shoulder,hip):
     try:
         # Suggest Wrist - Elbow
         shoulder_abduction = 90-math.degrees(math.atan2(elbow.y - shoulder.y, elbow.x - shoulder.x))
@@ -198,6 +198,34 @@ def calc_shoulder_abduction(elbow, shoulder,hip):
     except Exception as e:
         print("An error occurred while trying to calculate shoulder abudction:", e)
     return None
+
+
+def adjust_angle(angle, reference_angle):
+    adjusted_angle = angle - reference_angle
+    # Adjust the angle to be within -180 to 180 degrees
+    adjusted_angle = (adjusted_angle + 180) % 360 - 180
+    if adjusted_angle < 0:
+        adjusted_angle += 180  # Convert negative angles to positive within 0 to 180 degrees
+    return adjusted_angle
+
+def calc_shoulder_abduction(elbow, shoulder, hip, flip=False):
+    shoulder_x, shoulder_y = shoulder.x, shoulder.y
+    elbow_x, elbow_y = elbow.x, elbow.y
+
+    # Calculate the angles using trigonometry
+    shoulder_angle_rad = math.atan2(shoulder_y, shoulder_x)
+    elbow_angle_rad = math.atan2(elbow_y - shoulder_y, elbow_x - shoulder_x)
+    abduction_angle_rad = shoulder_angle_rad - elbow_angle_rad
+
+    # Convert the angles to degrees
+    shoulder_angle_deg = math.degrees(shoulder_angle_rad)
+    elbow_angle_deg = math.degrees(elbow_angle_rad)
+    abduction_angle_deg = math.degrees(abduction_angle_rad)
+
+    #return adjust_angle(abduction_angle_deg, 0)
+    if(flip):
+        180-adjust_angle(abduction_angle_deg, 120)
+    return adjust_angle(abduction_angle_deg, 120)
 
 # Function: calc_shoulder_extension
 # Intention: Calculates the shoulder extension based on the elbow and shoulder position.
@@ -292,7 +320,7 @@ def get_shoulder_calculations(landmarks):
             'external_rotation_left' : calc_shoulder_external_rotation(wrist_left, shoulder_left),
             'shoulder_right_gh_joint': calc_shoulder_gh_joint(shoulder_right,hip_right),
             'flexion_right' : calc_shoulder_flexion(elbow_right,shoulder_right,hip_right),            
-            'abduction_right' : calc_shoulder_abduction(elbow_right, shoulder_right,hip_right),
+            'abduction_right' : calc_shoulder_abduction(elbow_right, shoulder_right,hip_right,True),
             'extension_right' : calc_shoulder_extension(elbow_right, shoulder_right),
             'internal_rotation_right' : calc_shoulder_internal_rotation(wrist_right,shoulder_right),
             'external_rotation_right' : calc_shoulder_external_rotation(wrist_right, shoulder_right),

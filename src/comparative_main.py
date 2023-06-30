@@ -48,7 +48,10 @@ def setup_normal_frame(total_frames, fps, device=1):
 
 def comparative_main(args, main_cap, second_cap, check_fps=False):
 
+    # Dataframes for all keyframe and important keyframes
     df = None
+    idf = None
+    
     total_frames = 0
     # Write the DataFrame to an Excel file
     file_time = time.strftime("%Y_%m_%d-%H_%M_%S_")
@@ -143,8 +146,11 @@ def comparative_main(args, main_cap, second_cap, check_fps=False):
             if (out_record_media):
                 out_record_media.write(image)
 
-            df = save_to_csv(df, frame_data, output_full_file)
-            save_key_columns(df, add_extension(path_to_file + "_keycols"))
+            df = add_dataframe(df, frame1)
+            df = add_dataframe(df, frame2)
+            idf = add_key_columns(idf, frame1) 
+            idf = add_key_columns(idf, frame2)
+            
             if (not handle_keyboard(image)):
                 break
 
@@ -156,4 +162,6 @@ def comparative_main(args, main_cap, second_cap, check_fps=False):
 
     logging.info("Writing excel file from the CSV file.")
     # Make a copy of Excel
+    save_to_csv(df, output_full_file)
+    save_to_csv(idf, add_extension(path_to_file + "_keycols"))
     copy_csv_to_excel(output_full_file, add_extension(path_to_file, ".xlsx"))
