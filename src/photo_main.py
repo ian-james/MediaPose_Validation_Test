@@ -32,7 +32,7 @@ def setup_arguments():
 
     # Add an option to load a video file instead of a camera.
     # ../videos/tests/quick_flexion_test.mp4
-    ap.add_argument("-f", "--filename", type=str, default="../videos/images/left_arm_above_head.png",
+    ap.add_argument("-f", "--filename", type=str, default="/home/james/Projects/mediapipe_demo/MediaPose_Validation_Test/videos/images/left_arm_above_head.png",
                     help="Load a photo file.")
 
     # Add the debug mode for more verbose output in terminal.
@@ -67,7 +67,7 @@ def setup_arguments():
 
 def display_images_side_by_side(image1, image2, img1Lbl = "Image 1", img2Lbl = "Image 2"):
     # Create two separate windows
-    
+
     cv2.namedWindow(img1Lbl, cv2.WINDOW_NORMAL)
     cv2.namedWindow(img2Lbl, cv2.WINDOW_NORMAL)
 
@@ -77,12 +77,12 @@ def display_images_side_by_side(image1, image2, img1Lbl = "Image 1", img2Lbl = "
     y = 200
     cv2.resizeWindow(img1Lbl, size, size)
     cv2.resizeWindow(img2Lbl, size, size)
-        
+
     # Move the windows next to each other
     # Based on the size of the window move them side by side
     cv2.moveWindow(img1Lbl, x, y)
     cv2.moveWindow(img2Lbl, x + size, y)
-    
+
     # Display the images in separate windows
     cv2.imshow(img1Lbl, image1)
     cv2.imshow(img2Lbl, image2)
@@ -92,6 +92,27 @@ def display_images_side_by_side(image1, image2, img1Lbl = "Image 1", img2Lbl = "
 
     # Destroy the windows
     cv2.destroyAllWindows()
+
+def run_photo_analysis(image, media_only, media_noface, mdc, mtc, open_cv_enabled = True):
+
+    if(image is None):
+        return None, None, None
+    
+    df = None
+    original_image = image.copy()
+
+    with mp_pose.Pose(min_detection_confidence=mdc, min_tracking_confidence=mtc) as pose:
+        if (media_only):
+            frame = draw_mediapipe(pose, image, 0, media_noface)
+        else:
+            # Do our version of the pose estimation.
+            frame = draw_mediapipe_extended(pose, image, 0, False)
+            # Press 'q' to exit
+
+        df = add_dataframe(df, frame)
+
+    return original_image, image, df
+
 
 def main():
     global fps, fps_count, fps_rate, start_time, dataframe, file_time
@@ -103,52 +124,45 @@ def main():
     print(args)
     try:
         set_log_level(args['log'])
-        logging.info("Starting to write information.")        
-        
+        logging.info("Starting to write information.")
+
         filename = args['filename']
         print(filename)
-        
+
         # Media pipe options.
         media_only = args['media']
         media_noface = args['media_noface']
         mdc = args['min_detection_confidence']
         mtc = args['min_tracking_confidence']
-        df = None
+
         frame_data = []
-        
+
         # Output options.
         file_time = time.strftime("%Y_%m_%d-%H_%M_%S_")
         output_filename = file_time + \
         args['output'] if (args['timestamp']) else args['output']
         path_to_file = get_file_path(output_filename, "../records/")
-        output_full_file = add_extension(path_to_file)        
-        
-        image = open_image(filename)
-        original_image = image.copy()
-        
-        with mp_pose.Pose(min_detection_confidence=mdc, min_tracking_confidence=mtc) as pose:
-            if (media_only):
-                frame = draw_mediapipe(pose, image, 0, media_noface)
-            else:
-                # Do our version of the pose estimation.
-                frame = draw_mediapipe_extended(pose, image, 0, False)
-              # Press 'q' to exit            
+        output_full_file = add_extension(path_to_file)
+        df = None
 
-            df = add_dataframe(df,frame)                    
-            
-        display_images_side_by_side(original_image, image,"Original Image", "Processed Image")                
-        
-        while(cv2.waitKey(1) & 0xFF != ord('q')):
-            continue            
-        
+        image = open_image(filename)
+        if(image is not None):
+            original_image, image, df = run_photo_analysis(image, media_only, media_noface, mdc, mtc)
+
+            display_images_side_by_side(original_image, image, "Original Image", "Processed Image")
+
+            while (cv2.waitKey(1) & 0xFF != ord('q')):
+                continue
+        else:
+            raise("Failed to open image.")
+
     except Exception as e:
         logging.error(f"Failed to read image options. {e}")
         return 1
 
-    # Clean up the resources for the camera and windows.    
+    # Clean up the resources for the camera and windows.
     cv2.destroyAllWindows()
     logging.info("Finished writing information. (End of Program)")
-
 
 if __name__ == '__main__':
     main()

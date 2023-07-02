@@ -38,6 +38,15 @@ def add_dataframe(df, frame_data):
     return df
 
 
+def get_key_frames(df):
+    if (not df.empty):
+        cols = df.columns
+        key_columns = ['fps_count', 'timestamp', 'flexion_left',
+                    'flexion_right', 'abduction_left', 'abduction_right']
+        # Select only the key_columns from the data frame if they exist.
+        df = df.loc[:, df.columns.isin(key_columns)]
+    return df
+
 def add_key_columns(idf, frame):
     # key_columns = ['fps_count', 'timestamp',
     #                'shoulder_left', 'shoulder_right', 'shoulder_center',
@@ -46,10 +55,8 @@ def add_key_columns(idf, frame):
     #                'wrist_left', 'wrist_right', 'wrist_center',
     #                'shoulder_flexion', 'shoulder_abduction']
     
-    idf = add_dataframe(idf, frame)
-    
-    cols = idf.columns
-    key_columns = ['fps_count','timestamp','flexion_left','flexion_right', 'abduction_left','abduction_right']
-    # Select only the key_columns from the data frame if they exist.
-    idf = idf.loc[:, idf.columns.isin(key_columns)]    
-    return idf
+    idf = add_dataframe(idf, frame)    
+    return get_key_frames(idf)
+
+
+

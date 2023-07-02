@@ -4,9 +4,11 @@ import streamlit as st
 import os
 import cv2
 import numpy as np
+from photo_main import run_photo_analysis
 
 
 from utils import *
+from file_utils import *
 from camera_utils import *
 from log import *
 
@@ -23,7 +25,7 @@ def change_filename(filepath, new_filename):
     # Create the new file path with the updated filename
     new_filepath = os.path.join(directory, new_filename + extension)
     return new_filepath
-    
+
     return True
 def convert_to_mp4(video_path, output_path, codec='libx264'):
     try:
@@ -34,41 +36,62 @@ def convert_to_mp4(video_path, output_path, codec='libx264'):
         return True
     except Exception as e:
         print(f"Failed to convert video file named {video_path} to {output_path} with codec {codec}. {e}")
-        
+
     return False
 
+
+def save_uploadedfile(uploadedfile, folder = 'tempDir'):
+    location = os.path.join(folder, uploadedfile.name)
+    with open(location, "wb") as f:
+         f.write(uploadedfile.getbuffer())
+    return location, st.success("Saved File:{} to tempDir".format(uploadedfile.name))
+
 def main():
-    st.title("Video Player with Drawing")      
+    tmpDir = "/home/james/Projects/mediapipe_demo/MediaPose_Validation_Test/videos/"
+    
+    st.title("Video Player with Drawing")
 
     ################################################################################
     # MediaPipe Options
     st.sidebar.markdown("## MediaPipe Options")
 
-    st.sidebar.slider("Minimum detection confidence",
+    min_detection_con = st.sidebar.slider("Minimum detection confidence",
                       min_value=0.0, max_value=1.0, value=0.8, step=0.1)
 
-    st.sidebar.slider("Minimum tracking confidence",
-                      min_value=0.0, max_value=1.0, value=0.8, step=0.1)
-    
+    min_tracking_con = st.sidebar.slider("Minimum tracking confidence",min_value=0.0, max_value=1.0, value=0.8, step=0.1)
+
     ################################################################################
     # Program Options
     st.sidebar.markdown("## Program Options")
-    mode_src = st.sidebar.selectbox(
-        "Select the mode", ['Camera', 'Video', 'Image'])
+    mode_src = st.sidebar.selectbox("Select the mode", ['Camera', 'Video', 'Image'])
     if (mode_src == 'Image'):
+        #TODO Image quality is blue and not the same as the original.
         uploaded_file = st.file_uploader("Upload an image file", type=["jpg", "png", "jpeg"])
         if uploaded_file is not None:
             # To read file as bytes:
-            st.write(f"The file is {uploaded_file}")
-            image = Image.open(uploaded_file)
-            st.image(image=image, caption="Uploaded Image")
+            filename, result = save_uploadedfile(uploaded_file,os.path.join(tmpDir,"images"))
+            st.write(f"File saved: {filename}")
+            if(result):
+                image = open_image(filename)
+                if(image is not None):                    
+                    st.write(f"Min Detection Confidence: {min_detection_con} and Min Tracking Confidence: {min_tracking_con}")
+                    original_image, image, df = run_photo_analysis(image,False, False, min_detection_con, min_tracking_con)
+
+                    st.image(image=original_image, caption="Uploaded Image")
+                    st.image(image=image, caption="Enhanced Image")     
+                    
+                    idf = get_key_frames(df)
+                    st.dataframe(idf)
+                    
+                else:
+                    st.error(f"Failed to open image {uploaded_file}.")
 
     elif (mode_src == 'Video'):
         uploaded_file_object = st.file_uploader("Upload a video file", type=["mp4", "avi", "mov"])
 
         if (uploaded_file_object):
             # os.path.join(, selected_filename)
-            
+
             uploaded_file = os.path.join("./videos/tests/", uploaded_file_object.name)
             st.success(f"File selected: {uploaded_file}")
 
@@ -82,7 +105,7 @@ def main():
                 st.write(f"File changed: {output_file}")
             else:
                 st.error(f"{uploaded_file} failed to convert.")
-            
+
             file = output_file
             if os.path.exists(file):
                 st.write(f"Output file exists {file}")
@@ -95,8 +118,8 @@ def main():
                     st.write(f"Output file does not exist {file}")
             else:
                 st.write(f"Video file is not open {output_file}")
-                
-                
+
+
     ############################################################################
     # Recording Options and non-file upload.
     record = st.sidebar.checkbox("Record the video", value=False)
@@ -104,8 +127,7 @@ def main():
     if (record):
         save_file = st.sidebar.text_input("Enter the file name", value="record_video.mp4")
 
-    comparative_mode = st.sidebar.checkbox(
-        "Compare two video mode", value=False)
+    comparative_mode = st.sidebar.checkbox("Compare two video mode", value=False)
 
     mode_src2 = st.sidebar.selectbox("Select second Source:", [
                                      'Off', 'Camera' 'Video', 'Image'])
@@ -113,7 +135,7 @@ def main():
         st.failure("Not implemented yet.")
 
     take_snapshot = st.sidebar.button("Take Snapshot")
-    
+
     ################################################################################
     # Debug Options
     st.sidebar.markdown("## Debugging Controls")
@@ -126,6 +148,6 @@ def main():
 
     st.sidebar.checkbox("Check FPS option", value=False)
 
-    
+
 if __name__ == '__main__':
     main()
