@@ -1,32 +1,24 @@
-import base64
-from io import BytesIO
-from pathlib import Path
-from moviepy.editor import VideoFileClip
-import streamlit as st
 import os
-import cv2
-import numpy as np
-from mediapipe_main import draw_mediapipe, draw_mediapipe_extended, handle_keyboard, mediapose_main
-from photo_main import run_photo_analysis
+import base64
+from pathlib import Path
+from io import BytesIO
 
+import streamlit as st
+from moviepy.editor import VideoFileClip
 
 from utils import *
 from file_utils import *
 from camera_utils import *
 from log import *
 
-from PIL import Image
 import moviepy.editor as mp
-from streamlit_webrtc import webrtc_streamer
-import av
-
 from fps_timer import FPS
 
 # MediaPipe Includes
 import mediapipe as mp
-from mediapipe.python.solutions.pose import PoseLandmark
-from mediapipe.tasks.python.components.containers import Landmark
-from mediapipe.python.solutions.drawing_utils import _normalized_to_pixel_coordinates
+
+from mediapipe_main import draw_mediapipe, draw_mediapipe_extended, handle_keyboard, mediapose_main
+from photo_main import run_photo_analysis
 
 mp_drawing = mp.solutions.drawing_utils
 mp_drawing_styles = mp.solutions.drawing_styles
