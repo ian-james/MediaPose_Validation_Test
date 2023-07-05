@@ -93,22 +93,19 @@ def display_images_side_by_side(image1, image2, img1Lbl = "Image 1", img2Lbl = "
     # Destroy the windows
     cv2.destroyAllWindows()
 
-def run_photo_analysis(image, media_only, media_noface, mdc, mtc, open_cv_enabled = True):
-
+def run_photo_analysis(image, media_only, media_noface, mdc, mtc):
     if(image is None):
         return None, None, None
-    
     df = None
     original_image = image.copy()
 
-    with mp_pose.Pose(min_detection_confidence=mdc, min_tracking_confidence=mtc) as pose:
-        if (media_only):
+    with mp_pose.Pose(min_detection_confidence=mdc, min_tracking_confidence=mtc) as pose:        
+        if (media_only):            
             frame = draw_mediapipe(pose, image, 0, media_noface)
         else:
-            # Do our version of the pose estimation.
+            # Do our version of the pose estimation.            
             frame = draw_mediapipe_extended(pose, image, 0, False)
             # Press 'q' to exit
-
         df = add_dataframe(df, frame)
 
     return original_image, image, df
@@ -134,22 +131,22 @@ def main():
         media_noface = args['media_noface']
         mdc = args['min_detection_confidence']
         mtc = args['min_tracking_confidence']
-
-        frame_data = []
+        
+        df = None
+        idf = None
 
         # Output options.
-        file_time = time.strftime("%Y_%m_%d-%H_%M_%S_")
-        output_filename = file_time + \
-        args['output'] if (args['timestamp']) else args['output']
-        path_to_file = get_file_path(output_filename, "../records/")
-        output_full_file = add_extension(path_to_file)
-        df = None
+        output_full_file, path_to_file = setup_fullpath_to_timestamp_output(args["output"], args['timestamp'])
 
         image = open_image(filename)
         if(image is not None):
             original_image, image, df = run_photo_analysis(image, media_only, media_noface, mdc, mtc)
 
             display_images_side_by_side(original_image, image, "Original Image", "Processed Image")
+
+            save_to_csv(df, output_full_file)
+            idf = get_key_frames(df)
+            save_to_csv(idf, add_extension(path_to_file + "_keycols"))
 
             while (cv2.waitKey(1) & 0xFF != ord('q')):
                 continue

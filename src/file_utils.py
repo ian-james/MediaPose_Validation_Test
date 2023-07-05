@@ -1,5 +1,6 @@
 import os
 from enum import Enum
+import time
 
 import cv2
 import pandas as pd
@@ -54,6 +55,20 @@ def write_snapshot_image(filename, image):
     # Write the image to a file
     status = cv2.imwrite(filename, image)
     return status
+
+def setup_fullpath_to_timestamp_output(output_filename, add_timestamp, directory="../records/"):
+   # Write the DataFrame to an Excel file
+    file_time = time.strftime("%Y_%m_%d-%H_%M_%S_")
+
+    if(add_timestamp):
+        ofile = file_time + output_filename
+    else:
+        ofile = output_filename
+
+    path_to_file = get_file_path(ofile, directory)
+    output_full_file = add_extension(path_to_file)
+
+    return output_full_file, path_to_file
 
 def open_recording_file(record_file, frame_size, fps, location="../records/"):
     # Define the codec and create a VideoWriter object

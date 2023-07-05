@@ -37,7 +37,7 @@ def get_shoulder_info(results):
         # Calculate new positions and angles.
         shoulder_landmarks = get_landmarks(landmarks)
         logging.debug("Print Shoulder Information")
-        
+
         shoulder_info = get_shoulder_calculations(landmarks)
         logging.debug(shoulder_info)
     except:
@@ -53,18 +53,18 @@ def handle_keyboard(image,out_record, record_snapshot, frame_size, fps):
     key = cv2.waitKey(1)
     if key == ord('p'):
         cv2.waitKey(5000)
-    elif(key == ord('s')):        
-        snapshot_file =  time.strftime("%Y_%m_%d-%H_%M_%S_") + "_snapshot.png"        
-        write_snapshot_image(get_file_path(snapshot_file), image)      
+    elif(key == ord('s')):
+        snapshot_file =  time.strftime("%Y_%m_%d-%H_%M_%S_") + "_snapshot.png"
+        write_snapshot_image(get_file_path(snapshot_file), image)
     elif(key == ord('r')):
         if(record_snapshot):
             record_snapshot = False
             if(out_record):
                 out_record.release()
-        else:            
+        else:
             record_snapshot = True
             snapshot_record_file = time.strftime("%Y_%m_%d-%H_%M_%S_") + "_snapshot_rec.mp4"
-            out_record = open_recording_file(snapshot_record_file, frame_size, fps)    
+            out_record = open_recording_file(snapshot_record_file, frame_size, fps)
     elif key & 0xFF == 27:
         return False
     return True
@@ -88,7 +88,7 @@ def draw_mediapipe(pose, image, total_frames, media_noface):
     if(shoulder_info):
         # This section manages the data collection.
         frame = stores_frame_data(shoulder_info, total_frames)
-  
+
     return frame
 
 
@@ -106,7 +106,8 @@ def draw_mediapipe_extended(pose, image, total_frames, hide_display_calculations
     # Draw all landmarks
     draw_landmarks(image, results)
     shoulder_info = get_shoulder_info(results)
-
+    print(shoulder_info)
+    
     if(shoulder_info):
         # This section manages the data collection.
         frame = stores_frame_data(shoulder_info, total_frames)
@@ -128,13 +129,11 @@ def mediapose_main(args, cap, mode, frame_size, fps, check_fps = False):
     df = None
     idf = None
     total_frames = 0
-    record_snapshot = False  
-    # Write the DataFrame to an Excel file
-    file_time = time.strftime("%Y_%m_%d-%H_%M_%S_")
-    output_filename = file_time + args['output'] if(args['timestamp']) else args['output']
-    path_to_file = get_file_path(output_filename, "../records/")
-    output_full_file = add_extension(path_to_file)
-    
+    record_snapshot = False
+
+    # Setup the DataFrame to an Excel file
+    output_full_file, path_to_file = setup_fullpath_to_timestamp_output( args['output'], args['timestamp'])
+
     needs_flip = args['mirror'] or (mode == VideoMode.CAMERA)
 
     media_only = args['media']
@@ -148,29 +147,29 @@ def mediapose_main(args, cap, mode, frame_size, fps, check_fps = False):
     # The first frame indicates if the camera or video is working.
     mdc = args['min_detection_confidence']
     mtc = args['min_tracking_confidence']
-    
+
     cv2.namedWindow("MediaPipe Pose", cv2.WINDOW_NORMAL)
-    
+
     with FPS() as fps, mp_pose.Pose(min_detection_confidence=mdc, min_tracking_confidence=mtc) as pose:
         while cap.isOpened():
-                       
-            success, image = cap.read()
-            fps.update()           
 
-            if not success:   
+            success, image = cap.read()
+            fps.update()
+
+            if not success:
                 if(mode == VideoMode.VIDEO):
                     logging.info("Finished the video.")
                     break
                 else:
                     logging.info("Ignoring empty camera frame.")
-                    continue                    
-            
+                    continue
+
             if(out_record):
                 out_record.write(image)
-          
+
             should_flip = needs_flip
-            total_frames += 1                        
-        
+            total_frames += 1
+
             # Check for the multiple types of display.
             # Display the camera and the FPS.
             # Display mediapipe without additional calcualtions.
@@ -188,14 +187,14 @@ def mediapose_main(args, cap, mode, frame_size, fps, check_fps = False):
             else:
                 # Do our version of the pose estimation.
                 frame = draw_mediapipe_extended(pose, image, total_frames, args['no_display'])
-            
+
             cv2.imshow('MediaPipe Pose', image)
             if(out_record_media):
                 out_record_media.write(image)
-                
+
             df = add_dataframe(df, frame)
-            idf = add_key_columns(idf, frame)                        
-            
+            idf = add_key_columns(idf, frame)
+
             if(not handle_keyboard(image, out_record_snapshot, record_snapshot, frame_size, fps)):
                 break
 
@@ -204,9 +203,9 @@ def mediapose_main(args, cap, mode, frame_size, fps, check_fps = False):
 
     if(out_record):
         out_record.release()
-        
-    logging.info("Writing excel file from the CSV file.")    
-    # Make a copy of Excel    
+
+    logging.info("Writing excel file from the CSV file.")
+    # Make a copy of Excel
     save_to_csv(df, output_full_file)
     save_to_csv(idf, add_extension(path_to_file + "_keycols"))
     copy_csv_to_excel(output_full_file, add_extension(path_to_file, ".xlsx"))

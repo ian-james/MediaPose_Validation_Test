@@ -35,13 +35,12 @@ def flip_image(image, should_flip):
     return image, should_flip
 
 
-def setup_video_capture(filename="", fps_rate=30):
+def setup_video_capture(filename="", fps_rate=30, request_filename = True):
     # Check if the user chose a video file
     # Ask the user to input the video file name
     mode = VideoMode.VIDEO
-    if(not filename):
-        filename = input(
-            "Enter the video file name (or enter to use camera): ").strip()
+    if((not filename) and (request_filename)):
+        filename = input("Enter the video file name (or enter to use camera): ").strip()
 
     if(not filename):
         # Open the video mode
@@ -97,9 +96,13 @@ def display_fps(image, fps):
 # Find the camera index.
 def find_camera():
     cams_test = 100
+    results = []
     for i in range(0, cams_test):
         cap = cv2.VideoCapture(i)
         test, frame = cap.read()
-        if test:
-            logging.debug(f"i : {str(i)} /// result: {str(test)}")
-            pass
+        if test:            
+            results.append(i)
+            pass            
+    return results
+        
+    

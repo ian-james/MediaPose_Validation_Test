@@ -1,9 +1,12 @@
-
+import base64
+from io import BytesIO
+from pathlib import Path
 from moviepy.editor import VideoFileClip
 import streamlit as st
 import os
 import cv2
 import numpy as np
+from mediapipe_main import draw_mediapipe, draw_mediapipe_extended, handle_keyboard, mediapose_main
 from photo_main import run_photo_analysis
 
 
@@ -17,6 +20,28 @@ import moviepy.editor as mp
 from streamlit_webrtc import webrtc_streamer
 import av
 
+from fps_timer import FPS
+
+# MediaPipe Includes
+import mediapipe as mp
+from mediapipe.python.solutions.pose import PoseLandmark
+from mediapipe.tasks.python.components.containers import Landmark
+from mediapipe.python.solutions.drawing_utils import _normalized_to_pixel_coordinates
+
+mp_drawing = mp.solutions.drawing_utils
+mp_drawing_styles = mp.solutions.drawing_styles
+mp_pose = mp.solutions.pose
+
+# TODO - Camera options stop working if anything else is updated.
+    # It's like it tries to shut down but doesn't then wants to restart.
+    
+# TODO - Video Buttons
+
+# TODO Features
+# Comparative mode
+
+# TODO saved_frame_data
+
 def change_filename(filepath, new_filename):
     # Get the directory and extension of the original file
     directory = os.path.dirname(filepath)
@@ -26,13 +51,11 @@ def change_filename(filepath, new_filename):
     new_filepath = os.path.join(directory, new_filename + extension)
     return new_filepath
 
-    return True
 def convert_to_mp4(video_path, output_path, codec='libx264'):
     try:
         clip = VideoFileClip(video_path)
         clip.write_videofile(output_path, codec=codec)
-        clip.close()
-        print("Video conversion successful!")
+        clip.close()        
         return True
     except Exception as e:
         print(f"Failed to convert video file named {video_path} to {output_path} with codec {codec}. {e}")
@@ -40,102 +63,195 @@ def convert_to_mp4(video_path, output_path, codec='libx264'):
     return False
 
 
-def save_uploadedfile(uploadedfile, folder = 'tempDir'):
-    location = os.path.join(folder, uploadedfile.name)
-    with open(location, "wb") as f:
-         f.write(uploadedfile.getbuffer())
-    return location, st.success("Saved File:{} to tempDir".format(uploadedfile.name))
+def save_uploadedfile(uploadedfile, folder='tempDir'):
+    location = os.path.join(folder, uploadedfile.name)    
+    try:
+        with open(location, "wb") as f:
+            f.write(uploadedfile.getbuffer())
+    except:
+        return None, st.error(f"Failed to save the {uploadedfile.name}.")
+
+    return location, st.success("Saved File:{} to tempDir".format(uploadedfile.name))    
+
+
+def download_dataframe(df, file_name, file_format):
+    # Create a button to download the file
+    output = BytesIO()
+
+    if file_format == 'xlsx':        
+        df.to_excel(output,sheet_name="Sheet1", index=False, header=True)        
+        mime_type = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    elif file_format == 'csv':
+        df.to_csv(output, sep='\t', index=False)
+        mime_type = 'text/csv'
+
+    output.seek(0)
+
+    if file_format == 'xlsx':
+        ext = 'xlsx'
+    elif file_format == 'csv':
+        ext = 'csv'
+
+    file_label = f'Download {file_format.upper()}'
+    file_download = f'{file_name}.{ext}'
+    b64 = base64.b64encode(output.read()).decode()
+
+    st.markdown(
+        f'<a href="data:file/{mime_type};base64,{b64}" download="{file_download}">{file_label}</a>',
+        unsafe_allow_html=True
+    )
+
+
+def set_state_option(key,value):
+    if key not in st.session_state:
+        st.session_state[key] = value
+    else:
+        st.session_state[key] = value
+
+
+def get_state_option(key):
+    if key not in st.session_state:
+        return None
+    else:
+        return st.session_state[key]
+
+def flip_video_state(key):
+    set_state_option(key, not get_state_option(key))    
+
+def allow_download_button(file_path):
+    with open(file_path, 'rb') as my_file:
+        st.download_button(label='Download', data=my_file, file_name='filename.xlsx',
+                       mime='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+        
+def display_download_buttons(df, file_path):
+    col1, col2 = st.columns([1, 1])
+    with col1:
+        download_dataframe(df, file_path, "csv")
+    with col2:
+        download_dataframe(df, file_path, 'xlsx')
+        
+
+def display_video_buttons():
+
+    col1, col2, col3, col4 = st.columns([1, 1, 1,1])
+    with col1:
+        play_button = st.button("Play",key="play_btn",on_click=flip_video_state('play'))
+    with col2:
+        pause_button = st.button("Pause",key="pause_btn",on_click=flip_video_state('pause'))
+    with col3:
+        stop_button = st.button("Stop",key="stop_btn")
+    with col4:
+        take_snapshot = st.button("Take Snapshot",key="snapshot_btn",on_click=flip_video_state('snapshot'))
+
+    set_state_option('play',False)
+    set_state_option('snapshot', False)
+    set_state_option('pause', False)
+
+    return play_button, pause_button, stop_button, take_snapshot
+
+def run_streamlit_video_mediapipe_main(filename, min_detection_con=0.5, min_tracking_con=0.5, fps=30,
+                                 media_only=False, media_noface=False, record_media="record_full.mp4",
+                                 record_video="record_video.mp4"):
+    df = None
+    idf = None
+    total_frames = 0    
+    try:
+        cap, mode, fps, frame_size = setup_video_capture(filename=filename, fps_rate=fps,request_filename=False)
+
+        out_record = open_recording_file(record_video, frame_size, fps, filename)
+        out_record_media = open_recording_file(record_media, frame_size, fps,filename)
+        out_record_snapshot = None
+        record_snapshot = False
+
+        frame_placeholder = st.empty()
+        play_button, pause_button, stop_button, take_snapshot = display_video_buttons()
+
+        with st.expander("See Data Table"):
+            datatable_placeholder = st.empty()
+
+        if(play_button):
+            with FPS() as fps_timer, mp_pose.Pose(min_detection_confidence=min_detection_con, min_tracking_confidence=min_tracking_con) as pose:
+                while cap.isOpened():
+
+                    if( get_state_option('play')):
+                        set_state_option('pause',False)
+                    elif(get_state_option('pause')):
+                        set_state_option('play', False)
+                    elif(stop_button):
+                        set_state_option('play', False)
+                        set_state_option('pause', False)
+                        break
+
+                    if (get_state_option('pause') == False):
+                        success, image = cap.read()
+                        fps_timer.update()
+
+                        if not success:
+                            if(mode == VideoMode.VIDEO):
+                                logging.info("Finished the video.")
+                                break
+                            else:
+                                logging.info("Ignoring empty camera frame.")
+                                continue
+
+                        total_frames += 1
+                        if(media_only):
+                            frame = draw_mediapipe(pose, image, total_frames, media_noface)
+                        else:
+                            # Do our version of the pose estimation.
+                            frame = draw_mediapipe_extended(pose, image, total_frames, False)
+
+                            frame_placeholder.image(image,channels="BGR")
+
+                            if(out_record_media):
+                                out_record_media.write(image)
+
+                            df = add_dataframe(df, frame)
+                            idf = add_key_columns(idf, frame)
+
+                            datatable_placeholder.dataframe(idf,hide_index=True)
+
+                            if (not handle_keyboard(image, out_record_snapshot, record_snapshot, frame_size, fps)):
+                                break
+
+                        if (get_state_option('snapshot')):
+                            snapshot_file = time.strftime("%Y_%m_%d-%H_%M_%S_") + "_snapshot.png"
+                            write_snapshot_image(get_file_path(snapshot_file), image)
+                            st.success(f"Snapshot saved to {snapshot_file}")
+                            set_state_option('snapshot', False)
+
+        if(cap):
+            cap.release()
+
+        if (out_record_media):
+            out_record_media.release()
+
+        if (out_record):
+            out_record.release()
+        
+      
+        return df
+        
+    except:
+        logging.error("Failed to run streamlit main")
 
 def main():
     tmpDir = "/home/james/Projects/mediapipe_demo/MediaPose_Validation_Test/videos/"
-    
-    st.title("Video Player with Drawing")
 
+    title = st.title("HULC - Physio Mediapipe Project")    
+    
     ################################################################################
     # MediaPipe Options
     st.sidebar.markdown("## MediaPipe Options")
 
     min_detection_con = st.sidebar.slider("Minimum detection confidence",
-                      min_value=0.0, max_value=1.0, value=0.8, step=0.1)
+                                          min_value=0.0, max_value=1.0, value=0.8, step=0.1)
 
-    min_tracking_con = st.sidebar.slider("Minimum tracking confidence",min_value=0.0, max_value=1.0, value=0.8, step=0.1)
-
-    ################################################################################
-    # Program Options
-    st.sidebar.markdown("## Program Options")
-    mode_src = st.sidebar.selectbox("Select the mode", ['Camera', 'Video', 'Image'])
-    if (mode_src == 'Image'):
-        #TODO Image quality is blue and not the same as the original.
-        uploaded_file = st.file_uploader("Upload an image file", type=["jpg", "png", "jpeg"])
-        if uploaded_file is not None:
-            # To read file as bytes:
-            filename, result = save_uploadedfile(uploaded_file,os.path.join(tmpDir,"images"))
-            st.write(f"File saved: {filename}")
-            if(result):
-                image = open_image(filename)
-                if(image is not None):                    
-                    st.write(f"Min Detection Confidence: {min_detection_con} and Min Tracking Confidence: {min_tracking_con}")
-                    original_image, image, df = run_photo_analysis(image,False, False, min_detection_con, min_tracking_con)
-
-                    st.image(image=original_image, caption="Uploaded Image")
-                    st.image(image=image, caption="Enhanced Image")     
-                    
-                    idf = get_key_frames(df)
-                    st.dataframe(idf)
-                    
-                else:
-                    st.error(f"Failed to open image {uploaded_file}.")
-
-    elif (mode_src == 'Video'):
-        uploaded_file_object = st.file_uploader("Upload a video file", type=["mp4", "avi", "mov"])
-
-        if (uploaded_file_object):
-            # os.path.join(, selected_filename)
-
-            uploaded_file = os.path.join("./videos/tests/", uploaded_file_object.name)
-            st.success(f"File selected: {uploaded_file}")
-
-            output_file = change_filename(uploaded_file, "test_output")
-            st.write(f"Output file: {output_file}")
-
-            res = convert_to_mp4(uploaded_file, output_file)
-
-            if (res):
-                st.success(f"{uploaded_file} successfully converted.")
-                st.write(f"File changed: {output_file}")
-            else:
-                st.error(f"{uploaded_file} failed to convert.")
-
-            file = output_file
-            if os.path.exists(file):
-                st.write(f"Output file exists {file}")
-                video_file = open(file, 'rb')
-                if (video_file):
-                    st.write("Video file is open")
-                    video_bytes = video_file.read()
-                    st.video(video_bytes)
-                else:
-                    st.write(f"Output file does not exist {file}")
-            else:
-                st.write(f"Video file is not open {output_file}")
-
-
-    ############################################################################
-    # Recording Options and non-file upload.
-    record = st.sidebar.checkbox("Record the video", value=False)
-    save_file = None
-    if (record):
-        save_file = st.sidebar.text_input("Enter the file name", value="record_video.mp4")
-
-    comparative_mode = st.sidebar.checkbox("Compare two video mode", value=False)
-
-    mode_src2 = st.sidebar.selectbox("Select second Source:", [
-                                     'Off', 'Camera' 'Video', 'Image'])
-    if (mode_src2 != 'Off'):
-        st.failure("Not implemented yet.")
-
-    take_snapshot = st.sidebar.button("Take Snapshot")
-
+    min_tracking_con = st.sidebar.slider(
+        "Minimum tracking confidence", min_value=0.0, max_value=1.0, value=0.8, step=0.1)
+    
+    desired_fps = st.sidebar.number_input("FPS", min_value=1, max_value=60,value=30, step=1)
+    
     ################################################################################
     # Debug Options
     st.sidebar.markdown("## Debugging Controls")
@@ -143,11 +259,98 @@ def main():
     debug_levels = ['debug', 'info', 'warning', 'error', 'critical']
     st.sidebar.selectbox("Set the logging level", debug_levels)
 
-    if (st.sidebar.checkbox("Mediapipe Only", value=False)):
-        st.sidebar.checkbox("Ignore Face", value=False)
+    media_only = st.sidebar.checkbox("Mediapipe Only", value=False)
+    ignore_face = st.sidebar.checkbox("Ignore Face", value=False)   
 
-    st.sidebar.checkbox("Check FPS option", value=False)
+    ################################################################################
+    # Program Options
+    st.sidebar.markdown("## Program Options")
+    mode_src = st.sidebar.selectbox("Select the mode", ['None', 'Camera Capture', 'Camera', 'Video', 'Image'])
+    
+    if (mode_src == 'Image'):
+        title.title("Image Analysis")
+        st.subheader("Analyse a single image.")
+        st.divider()
+        uploaded_file = st.file_uploader(
+            "Upload an image file", type=["jpg", "png", "jpeg"])
+        if uploaded_file is not None:
+            # To read file as bytes:
+            filename, result = save_uploadedfile(
+                uploaded_file, os.path.join(tmpDir, "images"))
+            st.write(f"File saved: {filename}")
+            if (result):
+                image = open_image(filename)
+                if (image is not None):
+                    st.write(
+                        f"Min Detection Confidence: {min_detection_con} and Min Tracking Confidence: {min_tracking_con}")
+                    original_image, image, df = run_photo_analysis(
+                        image, media_only, ignore_face, min_detection_con, min_tracking_con)
 
+                    st.image(image=original_image, caption="Uploaded Image", channels="BGR")
+                    st.image(image=image, caption="Enhanced Image", channels="BGR")
+
+                    idf = get_key_frames(df)
+                    st.dataframe(idf)
+                    
+                    display_download_buttons(idf, os.path.join("image", Path(filename).stem))                    
+                else:
+                    st.error(f"Failed to open image {uploaded_file}.")
+
+    elif (mode_src == 'Video'):
+        title.title("Video Analysis")
+        st.subheader("Analyse a video file.")
+        st.divider()
+        # Upload the video and save it
+        uploaded_file = st.file_uploader("Upload a video file", type=["mp4", "avi", "mov"])
+        if (uploaded_file):
+            filename, result = save_uploadedfile(uploaded_file, tmpDir)
+            print(filename)
+
+            output_file = filename
+            if os.path.exists(output_file):
+                st.write(f"Output file exists {output_file}")
+                df = run_streamlit_video_mediapipe_main(output_file, min_detection_con, min_tracking_con, 30,media_only,ignore_face)
+                idf = get_key_frames(df)   
+                if(df is not None): 
+                    display_download_buttons(
+                    idf, os.path.join("image", Path(filename).stem))
+            else:
+                st.write(f"Video file is not open {output_file}")
+
+    elif (mode_src == 'Camera Capture'):
+        
+        title.title("Image Capture")
+        st.subheader("Capture an image from your camera.")
+        st.divider()
+        
+        img_file_buffer = st.camera_input("Camera")
+        if(img_file_buffer):
+            st.write(img_file_buffer)
+            filename, result = save_uploadedfile(img_file_buffer,tmpDir)
+            if(result):
+                print(filename)
+                image = open_image(filename)
+                if (image is not None):
+                    st.write(f"Min Detection Confidence: {min_detection_con} and Min Tracking Confidence: {min_tracking_con}")
+                                        
+                    original_image, image, df = run_photo_analysis(
+                        image, media_only, ignore_face, min_detection_con, min_tracking_con)
+                    
+                    st.image(image=image, caption="Enhanced Image", channels="BGR")
+
+                    idf = get_key_frames(df)
+                    st.dataframe(idf)
+                    display_download_buttons(
+                        idf, os.path.join("image", Path(filename).stem))
+                    
+    elif (mode_src == 'Camera'):
+        title.title("Real-Time Analysis")
+        st.subheader("Analyse a video stream from your camera.")
+        st.divider()
+        # TODO - This runs really well except for the camera buttons.
+        run_streamlit_video_mediapipe_main("")
+        #display_download_buttons(idf, os.path.join("image", Path(filename).stem))
+    
 
 if __name__ == '__main__':
     main()
