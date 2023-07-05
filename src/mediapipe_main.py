@@ -106,8 +106,7 @@ def draw_mediapipe_extended(pose, image, total_frames, hide_display_calculations
     # Draw all landmarks
     draw_landmarks(image, results)
     shoulder_info = get_shoulder_info(results)
-    print(shoulder_info)
-    
+
     if(shoulder_info):
         # This section manages the data collection.
         frame = stores_frame_data(shoulder_info, total_frames)

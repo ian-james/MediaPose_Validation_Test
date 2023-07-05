@@ -27,7 +27,7 @@ class FPS:
         end_time = time.time()
         elapsed_time = end_time - self.start_time
         fps = self.num_frames / elapsed_time
-        return fps
+        return round(fps, 2)
 
     def stop(self):
         fps = self.get_fps()
