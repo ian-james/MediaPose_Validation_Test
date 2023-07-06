@@ -5,6 +5,7 @@ from io import BytesIO
 
 import streamlit as st
 from moviepy.editor import VideoFileClip
+from opencv_file_utils import open_image
 
 from utils import *
 from file_utils import *
@@ -124,8 +125,7 @@ def display_video_buttons():
     return play_button, stop_button
 
 def run_streamlit_video_mediapipe_main(filename, min_detection_con=0.5, min_tracking_con=0.5, fps=30,
-                                 media_only=False, media_noface=False, record_media="record_full.mp4",
-                                 record_video="record_video.mp4"):
+                                 media_only=False, media_noface=False):
 
     # Streamlit UI Options.
     frame_placeholder = st.empty()
@@ -140,13 +140,7 @@ def run_streamlit_video_mediapipe_main(filename, min_detection_con=0.5, min_trac
     total_frames = 0
     try:
         cap, mode, fps, frame_size = setup_video_capture(filename=filename, fps_rate=fps,request_filename=False)
-
-        out_record = open_recording_file(record_video, frame_size, fps, filename)
-        out_record_media = open_recording_file(record_media, frame_size, fps,filename)
-        out_record_snapshot = None
-        record_snapshot = False
-
-
+     
         with FPS() as fps_timer, mp_pose.Pose(min_detection_confidence=min_detection_con, min_tracking_confidence=min_tracking_con) as pose:
             while cap.isOpened():
                 success, image = cap.read()
@@ -169,18 +163,12 @@ def run_streamlit_video_mediapipe_main(filename, min_detection_con=0.5, min_trac
 
                     frame_placeholder.image(image,channels="BGR")
 
-                    if(out_record_media):
-                        out_record_media.write(image)
-
                     df = add_dataframe(df, frame)
                     idf = add_key_columns(idf, frame)
 
                     fps_text.text(f"FPS: {fps_timer.get_fps()}")
 
                     datatable_placeholder.dataframe(idf,hide_index=True)
-
-                    if (not handle_keyboard(image, out_record_snapshot, record_snapshot, frame_size, fps)):
-                        break
 
                 # TODO: This work but needs to work with the video file and not reset it.
                 # if (get_state_option('snapshot')):
@@ -191,13 +179,6 @@ def run_streamlit_video_mediapipe_main(filename, min_detection_con=0.5, min_trac
 
             if(cap):
                 cap.release()
-
-            if (out_record_media):
-                out_record_media.release()
-
-            if (out_record):
-                out_record.release()
-
         return df
 
     except:

@@ -31,6 +31,7 @@ moviepy==1.0.3
 numpy==1.25.0
 opencv-contrib-python==4.8.0.74
 opencv-python==4.8.0.74
+opencv-python-headless==4.8.0.74
 openpyxl==3.1.2
 packaging==23.1
 pandas==2.0.3
