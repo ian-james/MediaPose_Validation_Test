@@ -35,7 +35,7 @@ def change_filename(filepath, new_filename):
     # Create the new file path with the updated filename
     new_filepath = os.path.join(directory, new_filename + extension)
     return new_filepath
-
+7
 def convert_to_mp4(video_path, output_path, codec='libx264'):
     try:
         clip = VideoFileClip(video_path)
@@ -186,7 +186,9 @@ def run_streamlit_video_mediapipe_main(filename, min_detection_con=0.5, min_trac
 
 
 def main():
-    tmpDir = "/home/james/Projects/mediapipe_demo/MediaPose_Validation_Test/videos/"
+    deploy_mode = True
+    #tmpDir = "/home/james/Projects/mediapipe_demo/MediaPose_Validation_Test/videos/"
+    tmpDir = ""
 
     title = st.title("HULC - Physio Mediapipe Project")
 
@@ -226,7 +228,11 @@ def main():
         if(uploaded_file):
             if uploaded_file is not None:
                 # To read file as bytes:
-                filename, result = save_uploadedfile(uploaded_file, os.path.join(tmpDir, "images"))
+                save_dir = ""
+                if(not deploy_mode):
+                    save_dir= os.path.join(tmpDir, "images")            
+                
+                filename, result = save_uploadedfile(uploaded_file, dir)
                 st.write(f"File saved: {filename}")
                 if (result):
                     image = open_image(filename)
