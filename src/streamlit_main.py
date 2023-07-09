@@ -187,7 +187,7 @@ def run_streamlit_video_mediapipe_main(filename, min_detection_con=0.5, min_trac
 
 def main():
     tmpDir = "/home/james/Projects/mediapipe_demo/MediaPose_Validation_Test/videos/"
-
+    deploy_mode = False
     title = st.title("HULC - Physio Mediapipe Project")
 
     ################################################################################
@@ -225,9 +225,14 @@ def main():
         uploaded_file = st.file_uploader("Upload an image file", type=["jpg", "png", "jpeg"])
         if(uploaded_file):
             if uploaded_file is not None:
-                # To read file as bytes:                
-                filename, result = save_uploadedfile(uploaded_file, os.path.join(tmpDir, "images"))                
-                st.write(f"File saved: {filename}")
+                # To read file as bytes:
+                if(not deploy_mode):                
+                    filename, result = save_uploadedfile(uploaded_file, os.path.join(tmpDir, "images"))                
+                    st.write(f"File saved: {filename}")
+                else:
+                    filename = uploaded_file.name
+                    result = True
+
                 if (result):
                     image = open_image(filename)
                     if (image is not None):
