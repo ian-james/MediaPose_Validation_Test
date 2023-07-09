@@ -2,6 +2,8 @@ import os
 import base64
 from pathlib import Path
 from io import BytesIO
+import numpy as np
+from PIL import Image
 
 import streamlit as st
 from moviepy.editor import VideoFileClip
@@ -35,7 +37,7 @@ def change_filename(filepath, new_filename):
     # Create the new file path with the updated filename
     new_filepath = os.path.join(directory, new_filename + extension)
     return new_filepath
-7
+
 def convert_to_mp4(video_path, output_path, codec='libx264'):
     try:
         clip = VideoFileClip(video_path)
@@ -235,7 +237,11 @@ def main():
                 st.write(f"File is: {filename}")
 
                 if (result):
-                    image = open_image(filename)
+                    if(deploy_mode):
+                        file_bytes = np.asarray(bytearray(uploaded_file.read()), dtype=np.uint8)
+                        image = cv2.imdecode(file_bytes, 1)
+                    else:
+                        image = open_image(filename)
                     if (image is not None):
                         st.write(
                             f"Min Detection Confidence: {min_detection_con} and Min Tracking Confidence: {min_tracking_con}")
