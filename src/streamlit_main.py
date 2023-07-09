@@ -187,7 +187,7 @@ def run_streamlit_video_mediapipe_main(filename, min_detection_con=0.5, min_trac
 
 def main():
     tmpDir = "/home/james/Projects/mediapipe_demo/MediaPose_Validation_Test/videos/"
-    deploy_mode = False
+    deploy_mode = True
     title = st.title("HULC - Physio Mediapipe Project")
 
     ################################################################################
