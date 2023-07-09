@@ -270,8 +270,10 @@ def main():
                 filename, result = uploaded_file.name, True
             else:
                 filename, result = save_uploadedfile(uploaded_file, tmpDir)
+                
+            st.write(f"File is: {filename}")
             output_file = filename
-            if os.path.exists(output_file):
+            if result:
                 st.write(f"Output file exists {output_file}")
                 df = run_streamlit_video_mediapipe_main(output_file, min_detection_con, min_tracking_con, desired_fps,media_only,ignore_face)
                 idf = get_key_frames(df)
