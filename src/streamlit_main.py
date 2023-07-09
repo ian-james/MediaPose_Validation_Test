@@ -266,7 +266,10 @@ def main():
         # Upload the video and save it
         uploaded_file = st.file_uploader("Upload a video file", type=["mp4", "avi", "mov"])
         if (uploaded_file):
-            filename, result = save_uploadedfile(uploaded_file, tmpDir)
+            if (not deploy_mode):
+                filename, result = uploaded_file.name, True
+            else:
+                filename, result = save_uploadedfile(uploaded_file, tmpDir)
             output_file = filename
             if os.path.exists(output_file):
                 st.write(f"Output file exists {output_file}")
