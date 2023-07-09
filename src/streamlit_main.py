@@ -227,11 +227,12 @@ def main():
             if uploaded_file is not None:
                 # To read file as bytes:
                 if(not deploy_mode):                
-                    filename, result = save_uploadedfile(uploaded_file, os.path.join(tmpDir, "images"))                
-                    st.write(f"File saved: {filename}")
+                    filename, result = save_uploadedfile(uploaded_file, os.path.join(tmpDir, "images"))                                    
                 else:
                     filename = uploaded_file.name
                     result = True
+                    
+                st.write(f"File is: {filename}")
 
                 if (result):
                     image = open_image(filename)
