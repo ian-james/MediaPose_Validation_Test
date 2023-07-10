@@ -50,7 +50,9 @@ def convert_to_mp4(video_path, output_path, codec='libx264'):
     return False
 
 def save_uploadedfile(uploadedfile, folder='tempDir'):
-    location = os.path.join(folder, uploadedfile.name)
+    location = uploadedfile.name
+    if(folder != ""):
+        location = os.path.join(folder, uploadedfile.name)
     try:
         with open(location, "wb") as f:
             f.write(uploadedfile.getbuffer())
@@ -61,31 +63,34 @@ def save_uploadedfile(uploadedfile, folder='tempDir'):
 
 
 def download_dataframe(df, file_name, file_format):
-    # Create a button to download the file
-    output = BytesIO()
+    # Create a button to download the filex
+    try:
+        output = BytesIO()
 
-    if file_format == 'xlsx':
-        df.to_excel(output,sheet_name="Sheet1", index=False, header=True)
-        mime_type = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-    elif file_format == 'csv':
-        df.to_csv(output, sep='\t', index=False)
-        mime_type = 'text/csv'
+        if file_format == 'xlsx':
+            df.to_excel(output,sheet_name="Sheet1", index=False, header=True)
+            mime_type = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        elif file_format == 'csv':
+            df.to_csv(output, sep='\t', index=False)
+            mime_type = 'text/csv'
 
-    output.seek(0)
+        output.seek(0)
 
-    if file_format == 'xlsx':
-        ext = 'xlsx'
-    elif file_format == 'csv':
-        ext = 'csv'
+        if file_format == 'xlsx':
+            ext = 'xlsx'
+        elif file_format == 'csv':
+            ext = 'csv'
 
-    file_label = f'Download {file_format.upper()}'
-    file_download = f'{file_name}.{ext}'
-    b64 = base64.b64encode(output.read()).decode()
+        file_label = f'Download {file_format.upper()}'
+        file_download = f'{file_name}.{ext}'
+        b64 = base64.b64encode(output.read()).decode()
 
-    st.markdown(
-        f'<a href="data:file/{mime_type};base64,{b64}" download="{file_download}">{file_label}</a>',
-        unsafe_allow_html=True
-    )
+        st.markdown(
+            f'<a href="data:file/{mime_type};base64,{b64}" download="{file_download}">{file_label}</a>',
+            unsafe_allow_html=True
+        )
+    except:
+        st.error(f"Unable to generate download file: {file_name}")
 
 
 def set_state_option(key,value):
@@ -142,19 +147,11 @@ def run_streamlit_video_mediapipe_main(filename, min_detection_con=0.5, min_trac
     idf = None
     total_frames = 0
     try:
-        print("BEFORE")
-        print(filename)
         cap, mode, fps, frame_size = setup_video_capture(filename=filename, fps_rate=fps,request_filename=False)
-        print("SETUP1")
-     
-        with FPS() as fps_timer, mp_pose.Pose(min_detection_confidence=min_detection_con, min_tracking_confidence=min_tracking_con) as pose:            
+        with FPS() as fps_timer, mp_pose.Pose(min_detection_confidence=min_detection_con, min_tracking_confidence=min_tracking_con) as pose:
             while cap.isOpened():
-                print("CAP")
                 success, image = cap.read()
                 fps_timer.update()
-
-
-                print("CAP READ")
                 if not success:
                     if(mode == VideoMode.VIDEO):
                         logging.info("Finished the video.")
@@ -164,12 +161,10 @@ def run_streamlit_video_mediapipe_main(filename, min_detection_con=0.5, min_trac
                         continue
 
                 total_frames += 1
-                print("Frame+1")
                 if(media_only):
                     frame = draw_mediapipe(pose, image, total_frames, media_noface)
                 else:
                     # Do our version of the pose estimation.
-                    print("Extended")
                     frame = draw_mediapipe_extended(pose, image, total_frames, False)
 
                     frame_placeholder.image(image,channels="BGR")
@@ -180,7 +175,7 @@ def run_streamlit_video_mediapipe_main(filename, min_detection_con=0.5, min_trac
                     fps_text.text(f"FPS: {fps_timer.get_fps()}")
 
                     datatable_placeholder.dataframe(idf,hide_index=True)
-          
+
             if(cap):
                 cap.release()
         return df
@@ -229,12 +224,12 @@ def main():
         if(uploaded_file):
             if uploaded_file is not None:
                 # To read file as bytes:
-                if(not deploy_mode):                
-                    filename, result = save_uploadedfile(uploaded_file, os.path.join(tmpDir, "images"))                                    
+                if(not deploy_mode):
+                    filename, result = save_uploadedfile(uploaded_file, os.path.join(tmpDir, "images"))
                 else:
                     filename = uploaded_file.name
                     result = True
-                    
+
                 st.write(f"File is: {filename}")
 
                 if (result):
@@ -255,7 +250,7 @@ def main():
                         idf = get_key_frames(df)
                         st.dataframe(idf)
 
-                        if(filename is not None):
+                        if(filename is not None):                            
                             display_download_buttons(idf, os.path.join("image", Path(filename).stem))
                     else:
                         st.error(f"Failed to open image {uploaded_file}.")
@@ -268,21 +263,22 @@ def main():
         uploaded_file = st.file_uploader("Upload a video file", type=["mp4", "avi", "mov"])
         if (uploaded_file):
             if (deploy_mode):
-                filename = NamedTemporaryFile(delete=False)
-                filename.write(uploaded_file.read())
-                result = True                
-            else:                           
+                #filename = NamedTemporaryFile(delete=False)
+                #filename.write(uploaded_file.read())
+                filename, result = save_uploadedfile(uploaded_file,"")                
+            else:
                 filename, result = save_uploadedfile(uploaded_file, tmpDir)
-                
+
             st.write(f"File is: {filename}")
-            output_file = filename.name
+            output_file = filename
             if result:
                 st.write(f"Output file exists {output_file}")
                 df = run_streamlit_video_mediapipe_main(output_file, min_detection_con, min_tracking_con, desired_fps,media_only,ignore_face)
                 st.write("FINISHED")
                 idf = get_key_frames(df)
                 if(df is not None):
-                    display_download_buttons(idf, os.path.join("image", Path(filename).stem))
+                    st.write(filename)                                  
+                    display_download_buttons(idf, Path(filename).stem)
             else:
                 st.write(f"Video file is not open {output_file}")
 
@@ -300,14 +296,14 @@ def main():
             else:
                 filename = img_file_buffer.name
                 result = True
-                        
-            if(result):                
+
+            if(result):
                 if (deploy_mode):
                     file_bytes = np.asarray(bytearray(img_file_buffer.read()), dtype=np.uint8)
                     image = cv2.imdecode(file_bytes, 1)
                 else:
                     image = open_image(filename)
-                
+
                 if (image is not None):
                     st.write(f"Min Detection Confidence: {min_detection_con} and Min Tracking Confidence: {min_tracking_con}")
 
