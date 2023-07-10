@@ -8,6 +8,7 @@ from PIL import Image
 import streamlit as st
 from moviepy.editor import VideoFileClip
 from opencv_file_utils import open_image
+from tempfile import NamedTemporaryFile
 
 from utils import *
 from file_utils import *
@@ -141,13 +142,19 @@ def run_streamlit_video_mediapipe_main(filename, min_detection_con=0.5, min_trac
     idf = None
     total_frames = 0
     try:
+        print("BEFORE")
+        print(filename)
         cap, mode, fps, frame_size = setup_video_capture(filename=filename, fps_rate=fps,request_filename=False)
+        print("SETUP1")
      
-        with FPS() as fps_timer, mp_pose.Pose(min_detection_confidence=min_detection_con, min_tracking_confidence=min_tracking_con) as pose:
+        with FPS() as fps_timer, mp_pose.Pose(min_detection_confidence=min_detection_con, min_tracking_confidence=min_tracking_con) as pose:            
             while cap.isOpened():
+                print("CAP")
                 success, image = cap.read()
                 fps_timer.update()
 
+
+                print("CAP READ")
                 if not success:
                     if(mode == VideoMode.VIDEO):
                         logging.info("Finished the video.")
@@ -157,10 +164,12 @@ def run_streamlit_video_mediapipe_main(filename, min_detection_con=0.5, min_trac
                         continue
 
                 total_frames += 1
+                print("Frame+1")
                 if(media_only):
                     frame = draw_mediapipe(pose, image, total_frames, media_noface)
                 else:
                     # Do our version of the pose estimation.
+                    print("Extended")
                     frame = draw_mediapipe_extended(pose, image, total_frames, False)
 
                     frame_placeholder.image(image,channels="BGR")
@@ -171,14 +180,7 @@ def run_streamlit_video_mediapipe_main(filename, min_detection_con=0.5, min_trac
                     fps_text.text(f"FPS: {fps_timer.get_fps()}")
 
                     datatable_placeholder.dataframe(idf,hide_index=True)
-
-                # TODO: This work but needs to work with the video file and not reset it.
-                # if (get_state_option('snapshot')):
-                #     snapshot_file = time.strftime("%Y_%m_%d-%H_%M_%S_") + "_snapshot.png"
-                #     write_snapshot_image(get_file_path(snapshot_file), image)
-                #     st.success(f"Snapshot saved to {snapshot_file}")
-                #     set_state_option('snapshot', False)
-
+          
             if(cap):
                 cap.release()
         return df
@@ -206,8 +208,7 @@ def main():
     fps_text = st.empty()
 
     st.markdown("## Program Options")
-    mode_src = st.selectbox(
-        "Select the mode", ['None', 'Camera Capture', 'Camera', 'Video', 'Image'])
+    mode_src = st.selectbox("Select the mode", ['None', 'Camera Capture', 'Camera', 'Video', 'Image'])
 
     ################################################################################
     # Debug Options
@@ -267,15 +268,17 @@ def main():
         uploaded_file = st.file_uploader("Upload a video file", type=["mp4", "avi", "mov"])
         if (uploaded_file):
             if (deploy_mode):
-                filename, result = uploaded_file.name, True
-            else:
-                filename, result = save_uploadedfile(uploaded_file, tmpDir)
+                temp_file = NamedTemporaryFile(delete=False)
+                temp_file.write(uploaded_file.read())            
+                
+            filename, result = save_uploadedfile(uploaded_file, tmpDir)
                 
             st.write(f"File is: {filename}")
             output_file = filename
             if result:
                 st.write(f"Output file exists {output_file}")
                 df = run_streamlit_video_mediapipe_main(output_file, min_detection_con, min_tracking_con, desired_fps,media_only,ignore_face)
+                st.write("FINISHED")
                 idf = get_key_frames(df)
                 if(df is not None):
                     display_download_buttons(idf, os.path.join("image", Path(filename).stem))
@@ -291,9 +294,19 @@ def main():
         img_file_buffer = st.camera_input("Camera")
         if(img_file_buffer):
             st.write(img_file_buffer)
-            filename, result = save_uploadedfile(img_file_buffer,tmpDir)
-            if(result):
-                image = open_image(filename)
+            if (not deploy_mode):
+                filename, result = save_uploadedfile(img_file_buffer, tmpDir)
+            else:
+                filename = img_file_buffer.name
+                result = True
+                        
+            if(result):                
+                if (deploy_mode):
+                    file_bytes = np.asarray(bytearray(img_file_buffer.read()), dtype=np.uint8)
+                    image = cv2.imdecode(file_bytes, 1)
+                else:
+                    image = open_image(filename)
+                
                 if (image is not None):
                     st.write(f"Min Detection Confidence: {min_detection_con} and Min Tracking Confidence: {min_tracking_con}")
 

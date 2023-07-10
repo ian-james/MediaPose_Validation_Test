@@ -1,0 +1,62 @@
+TODO:
+
+# Notes:
+# Angles Information
+# Reference https://content.iospress.com/media/bmr/2018/31-4/bmr-31-4-bmr140203/bmr-31-bmr140203-g002.jpg?width=755
+# Shoulder Flexion along x-axis 0 at rest, 180 straight,
+# Shoulder Extension 60 backward, 0 at rest
+# Elbow Flexion (along x-axis) 90 at rest, 0 bend elbow, 60 full curl
+
+# Internal Rotation - 0 arm straight out and wrist up, 90 by side wrist up,
+# External Rotation - 0 arm straight out 0 and 90 straight up.
+
+# Horizontal Abduction and Adduction (y-axis rotation, arm straight along x-axis thumb- rest 0, straight arm in-front thumb up 90)
+# Abduction and Adjuction (z-axis rotation arm down by side is rest 0, straight out to side is 90, above head palm out 180)
+
+<TODO - Feb 8>
+
+1) Abduction rest is currently 90, set to 0.
+2) Consider initial position with an error rate. If rest is 15 degrees, then error might.
+This is a personalized ROM.
+
+3) Shoulder Center y-axis straight line ( future considerations )
+
+4) Frame FPS 0.03 in dartfish - We want to be able to compare frames on the same image.
+   Should be writing as excel file. 
+   Should be images at same capture fps.
+
+5) Plan for long-term website.
+
+6) Keeping Tips and process for Media Pipe
+
+7) Compare two videos in multiple Overiew and frontal.
+
+
+# Demo Comments
+# Calibrate in neutral position, where is the axis for their initial position.
+# Consideration for the starting points between normal Range-of-Motion and patients.
+# Further investigate depth as Z-Axis is calculated via ML. How accurate is it?
+# Validations  - Gold standard against ours ( DartFish or OptiTrack etc)
+# Standard starting position for exercises.
+# Goals rely on evaluating tele-health types solutions based on quick assessment (guess-estimate)
+# However, this has potential as low entry points for cost, setup, and now requires validation for accuracy.
+# End Comments
+
+My TODO:
+# Saving is not appending the dataframe anymore (this might be a merge issue) (Might only occur on another error.)
+# Working on calculation for the flexion as it isn't right.
+
+
+Shoulder flexion is rotation around the x-axix (extension is negative rotation)
+Shoulder Add/abduction are are around the z-axis
+
+<June 26th>
+# TODO
+# (Done) Remove the everythign but Flexsion and Abduction
+# Front Frame Analysis Only
+
+# Full Body Analysis - Appears to work but negative.
+# (Done) Key Points - Only Flex and Abudction.
+
+# (Done) Color Swap on Video Files (Important then Camera)
+# (Done) Resize Image and Videos

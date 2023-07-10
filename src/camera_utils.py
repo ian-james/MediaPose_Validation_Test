@@ -72,8 +72,6 @@ def setup_video_capture(filename="", fps_rate=30, request_filename = True):
     return cap, mode, fps_rate, (width, height)
 
 # calculate the frames per second of the running video stream.
-
-
 def calculate_fps():
     global fps, fps_count, start_time
     fps_count += 1
