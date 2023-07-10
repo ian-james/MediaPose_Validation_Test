@@ -268,13 +268,14 @@ def main():
         uploaded_file = st.file_uploader("Upload a video file", type=["mp4", "avi", "mov"])
         if (uploaded_file):
             if (deploy_mode):
-                temp_file = NamedTemporaryFile(delete=False)
-                temp_file.write(uploaded_file.read())            
-                
-            filename, result = save_uploadedfile(uploaded_file, tmpDir)
+                filename = NamedTemporaryFile(delete=False)
+                filename.write(uploaded_file.read())
+                result = True                
+            else:                           
+                filename, result = save_uploadedfile(uploaded_file, tmpDir)
                 
             st.write(f"File is: {filename}")
-            output_file = filename
+            output_file = filename.name
             if result:
                 st.write(f"Output file exists {output_file}")
                 df = run_streamlit_video_mediapipe_main(output_file, min_detection_con, min_tracking_con, desired_fps,media_only,ignore_face)
