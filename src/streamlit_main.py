@@ -57,9 +57,9 @@ def save_uploadedfile(uploadedfile, folder='tempDir'):
         with open(location, "wb") as f:
             f.write(uploadedfile.getbuffer())
     except:
-        return None, st.error(f"Failed to save the {uploadedfile.name}.")
+        return None, st.error(f"Failed to save the {location}.")
 
-    return location, st.success("Saved File:{} to tempDir".format(uploadedfile.name))
+    return location, st.success("Saved File:{} to tempDir".format(location))
 
 
 def download_dataframe(df, file_name, file_format):
@@ -183,7 +183,6 @@ def run_streamlit_video_mediapipe_main(filename, min_detection_con=0.5, min_trac
     except:
         logging.error("Failed to run streamlit main")
 
-
 def main():
     tmpDir = "/home/james/Projects/mediapipe_demo/MediaPose_Validation_Test/videos/"
     deploy_mode = True
@@ -250,7 +249,7 @@ def main():
                         idf = get_key_frames(df)
                         st.dataframe(idf)
 
-                        if(filename is not None):                            
+                        if(filename is not None):
                             display_download_buttons(idf, os.path.join("image", Path(filename).stem))
                     else:
                         st.error(f"Failed to open image {uploaded_file}.")
@@ -265,7 +264,7 @@ def main():
             if (deploy_mode):
                 #filename = NamedTemporaryFile(delete=False)
                 #filename.write(uploaded_file.read())
-                filename, result = save_uploadedfile(uploaded_file,"")                
+                filename, result = save_uploadedfile(uploaded_file,"")
             else:
                 filename, result = save_uploadedfile(uploaded_file, tmpDir)
 
@@ -274,10 +273,9 @@ def main():
             if result:
                 st.write(f"Output file exists {output_file}")
                 df = run_streamlit_video_mediapipe_main(output_file, min_detection_con, min_tracking_con, desired_fps,media_only,ignore_face)
-                st.write("FINISHED")
                 idf = get_key_frames(df)
                 if(df is not None):
-                    st.write(filename)                                  
+                    st.write(filename)
                     display_download_buttons(idf, Path(filename).stem)
             else:
                 st.write(f"Video file is not open {output_file}")
@@ -294,9 +292,9 @@ def main():
             if (not deploy_mode):
                 filename, result = save_uploadedfile(img_file_buffer, tmpDir)
             else:
-                filename = img_file_buffer.name
-                result = True
+                filename, result = save_uploadedfile(img_file_buffer, "")
 
+            st.write(filename)
             if(result):
                 if (deploy_mode):
                     file_bytes = np.asarray(bytearray(img_file_buffer.read()), dtype=np.uint8)
@@ -314,17 +312,29 @@ def main():
 
                     idf = get_key_frames(df)
                     st.dataframe(idf)
-                    display_download_buttons(
-                        idf, os.path.join("image", Path(filename).stem))
+                    if (df is not None):
+                        st.write(filename)
+                        display_download_buttons(idf, Path(filename).stem)
 
     elif (mode_src == 'Camera'):
         title.title("Real-Time Analysis")
         st.subheader("Analyse a video stream from your camera.")
         st.divider()
-        # TODO - This runs really well except for the camera buttons.
-        run_streamlit_video_mediapipe_main("")
-        #display_download_buttons(idf, os.path.join("image", Path(filename).stem))
 
+        # Select a Camera option
+        camera_options = find_camera()
+        if len(camera_options) > 1:
+            selected_camera = st.selectbox("Select a camera", camera_options)
+
+            if(selected_camera != "No Camera" ) :
+                camera_index = int(selected_camera.split()[1])
+                df = run_streamlit_video_mediapipe_main(camera_index, min_detection_con, min_tracking_con, desired_fps, media_only, ignore_face)
+                idf = get_key_frames(df)
+                if (idf is not None):
+                    st.write(filename)
+                    display_download_buttons(idf, Path(filename).stem)
+        else:
+            st.error("Unable to identify active camera.")
 
 if __name__ == '__main__':
     main()

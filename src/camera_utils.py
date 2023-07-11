@@ -34,20 +34,21 @@ def flip_image(image, should_flip):
         should_flip = False        
     return image, should_flip
 
-
 def setup_video_capture(filename="", fps_rate=30, request_filename = True):
     # Check if the user chose a video file
-    # Ask the user to input the video file name
+    # Ask the user to input the video file name    
     mode = VideoMode.VIDEO
-    if((not filename) and (request_filename)):
+    if(request_filename):
         filename = input("Enter the video file name (or enter to use camera): ").strip()
-
-    if(not filename):
-        # Open the video mode
-        # Find Camera to find the right camera.
-        # This is a hack to find the right camera when multiple cameras are connected.
-        filename = 2
-        #find_camera()
+        
+    if( filename == ""):
+        filename = 0 # Default to camera location
+        
+    if( isinstance(filename,str) and filename.isnumeric()):
+        filename = int(filename)
+                
+    print("******************",filename,"****************************")
+    if (isinstance(filename, int)):
         mode = VideoMode.CAMERA
 
     cap = cv2.VideoCapture(filename)
@@ -67,7 +68,7 @@ def setup_video_capture(filename="", fps_rate=30, request_filename = True):
     height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
 
     logging.info(f"Width = {width}")
-    logging.info(f"Height= {height}")
+    logging.info(f"Height= {height}")    
 
     return cap, mode, fps_rate, (width, height)
 
@@ -93,13 +94,13 @@ def display_fps(image, fps):
 
 # Find the camera index.
 def find_camera():
-    cams_test = 100
-    results = []
+    cams_test = 10
+    results = ["No Camera"]
     for i in range(0, cams_test):
         cap = cv2.VideoCapture(i)
         test, frame = cap.read()
-        if test:            
-            results.append(i)
+        if test:
+            results.append(f"Camera {i}")
             pass            
     return results
         
