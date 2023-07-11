@@ -317,18 +317,21 @@ def main():
         img_file_buffer = st.camera_input("Camera")
         if (img_file_buffer):
             st.write(img_file_buffer)
-            filename, result = save_uploadedfile(img_file_buffer, tmpDir)
-
-            st.write(filename)
+            if (not deploy_mode):
+                filename, result = save_uploadedfile(img_file_buffer, os.path.join(tmpDir, "images"))
+            else:
+                filename = img_file_buffer.name
+                result = True
+            
             if (result):
                 if (deploy_mode):
                     file_bytes = np.asarray(bytearray(img_file_buffer.read()), dtype=np.uint8)
                     image = cv2.imdecode(file_bytes, 1)
                 else:
                     image = open_image(filename)
-
+                
                 if (image is not None):
-                    st.write(f"Min Detection Confidence: {min_detection_con} and Min Tracking Confidence: {min_tracking_con}")
+                    st.write(f"Min Detection Confidence: {min_detection_con} and Min Tracking Confidence: {min_tracking_con}")                    
 
                     original_image, image, df = run_photo_analysis(
                         image, media_only, ignore_face, min_detection_con, min_tracking_con)
