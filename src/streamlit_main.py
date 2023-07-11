@@ -172,6 +172,9 @@ def run_streamlit_video_mediapipe_main(filename, min_detection_con=0.5, min_trac
                         logging.info("Ignoring empty camera frame.")
                         continue
 
+                frame_placeholder.image(image, channels="BGR")
+                continue
+
                 total_frames += 1
                 if (media_only):
                     frame = draw_mediapipe(pose, image, total_frames, media_noface)
