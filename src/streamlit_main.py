@@ -174,13 +174,15 @@ def run_streamlit_video_mediapipe_main(filename, min_detection_con=0.5, min_trac
 
                 total_frames += 1
                 if (media_only):
-                    frame = draw_mediapipe(
-                        pose, image, total_frames, media_noface)
+                    frame = draw_mediapipe(pose, image, total_frames, media_noface)
+                    frame_placeholder.image(image, channels="BGR")
                 else:
                     # Do our version of the pose estimation.
                     frame = draw_mediapipe_extended(pose, image, total_frames, False)
-
-                    frame_placeholder.image(image, channels="BGR")
+                    try:
+                        frame_placeholder.image(image, channels="BGR")
+                    except Exception as e:
+                        logging.error(f"Failed to display the image. {e}")
 
                     df = add_dataframe(df, frame)
                     idf = add_key_columns(idf, frame)
