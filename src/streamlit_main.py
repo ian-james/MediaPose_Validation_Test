@@ -46,7 +46,7 @@ def change_filename(filepath, new_filename):
 def convert_to_mp4(video_path, output_path, codec='libx264'):
     try:
         clip = VideoFileClip(video_path)
-        clip.write_videofile(output_path, codec=codec)
+        clip.write_videofile(output_path, codec=codec,fps=12)
         clip.close()
         return True
     except Exception as e:
