@@ -111,6 +111,20 @@ def run_photo_analysis(image, media_only, media_noface, mdc, mtc):
     return original_image, image, df
 
 
+def run_camera_analysis(image, media_only, media_noface, mdc, mtc):    
+    df = None    
+    if (image is None):
+        return None, None
+    
+    with mp_pose.Pose(min_detection_confidence=mdc, min_tracking_confidence=mtc) as pose:
+        if (media_only):
+            frame = draw_mediapipe(pose, image, 0, media_noface)
+        else:
+            # Do our version of the pose estimation.            
+            frame = draw_mediapipe_extended(pose, image, 0, False)
+
+    return image, df
+
 def main():
     global fps, fps_count, fps_rate, start_time, dataframe, file_time
 

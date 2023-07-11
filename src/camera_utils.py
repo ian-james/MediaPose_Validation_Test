@@ -7,21 +7,21 @@ from enum import Enum
 class VideoMode(Enum):
     CAMERA = 0
     VIDEO = 1
-    
+
 class VideoCap_Info:
     def __init__(self) -> None:
         pass
-    
+
     def __init__(self, cap, fps_rate, width, height, mode):
         self.cap = cap
         self.fps_rate = fps_rate
         self.width = width
         self.height = height
         self.mode = mode
-        
+
     def __str__(self):
         return "VideoCap_Info: fps_rate=" + str(self.fps_rate) + " width=" + str(self.width) + " height=" + str(self.height) + " mode=" + str(self.mode)
-    
+
     # Compare two VideoCap_Info objects.
     def __eq__(self, o: object) -> bool:
         if not isinstance(o, VideoCap_Info):
@@ -31,22 +31,22 @@ class VideoCap_Info:
 def flip_image(image, should_flip):
     if(should_flip):
         image = cv2.flip(image, 1)
-        should_flip = False        
+        should_flip = False
     return image, should_flip
 
 def setup_video_capture(filename="", fps_rate=30, request_filename = True):
     # Check if the user chose a video file
-    # Ask the user to input the video file name    
+    # Ask the user to input the video file name
     mode = VideoMode.VIDEO
     if(request_filename):
         filename = input("Enter the video file name (or enter to use camera): ").strip()
-        
+
     if( filename == ""):
         filename = 0 # Default to camera location
-        
+
     if( isinstance(filename,str) and filename.isnumeric()):
         filename = int(filename)
-                
+
     print("******************",filename,"****************************")
     if (isinstance(filename, int)):
         mode = VideoMode.CAMERA
@@ -68,7 +68,7 @@ def setup_video_capture(filename="", fps_rate=30, request_filename = True):
     height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
 
     logging.info(f"Width = {width}")
-    logging.info(f"Height= {height}")    
+    logging.info(f"Height= {height}")
 
     return cap, mode, fps_rate, (width, height)
 
@@ -101,7 +101,7 @@ def find_camera():
         test, frame = cap.read()
         if test:
             results.append(f"Camera {i}")
-            pass            
+            pass
     return results
-        
-    
+
+
