@@ -287,20 +287,24 @@ def main():
         # Upload the video and save it
         uploaded_file = st.file_uploader("Upload a video file", type=["mp4", "avi", "mov"])
         if (uploaded_file):
-            filename, result = save_uploadedfile(uploaded_file, tmpDir)
-            result = convert_to_mp4(filename, "output.mp4", "mpeg4")
-            filename = 'output.mp4'
+            if(deploy_mode):
+                filename = NamedTemporaryFile(delete=False)
+                filename.write(uploaded_file.read())
+                output_file = filename.name
+                result = True
+            else:
+                filename, result = save_uploadedfile(uploaded_file, tmpDir)
+                output_file = filename
 
-            st.write(f"File is: {filename}")
-            output_file = filename
+            st.write(f"File is: {filename}")            
             if result:
                 st.write(f"Output file exists {output_file}")
                 df = run_streamlit_video_mediapipe_main(
                     output_file, min_detection_con, min_tracking_con, desired_fps, media_only, ignore_face)
                 idf = get_key_frames(df)
                 if (df is not None):
-                    st.write(filename)
-                    display_download_buttons(idf, Path(filename).stem)
+                    st.write(output_file)
+                    display_download_buttons(idf, Path(output_file).stem)
             else:
                 st.write(f"Video file is not open {output_file}")
 
@@ -318,16 +322,16 @@ def main():
             else:
                 filename = img_file_buffer.name
                 result = True
-            
+
             if (result):
                 if (deploy_mode):
                     file_bytes = np.asarray(bytearray(img_file_buffer.read()), dtype=np.uint8)
                     image = cv2.imdecode(file_bytes, 1)
                 else:
                     image = open_image(filename)
-                
+
                 if (image is not None):
-                    st.write(f"Min Detection Confidence: {min_detection_con} and Min Tracking Confidence: {min_tracking_con}")                    
+                    st.write(f"Min Detection Confidence: {min_detection_con} and Min Tracking Confidence: {min_tracking_con}")
 
                     original_image, image, df = run_photo_analysis(
                         image, media_only, ignore_face, min_detection_con, min_tracking_con)
