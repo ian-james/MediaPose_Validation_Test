@@ -29,13 +29,9 @@ import mediapipe as mp
 from mediapipe_main import draw_mediapipe, draw_mediapipe_extended, handle_keyboard, mediapose_main
 from photo_main import run_photo_analysis, run_camera_analysis
 
-
 mp_drawing = mp.solutions.drawing_utils
 mp_drawing_styles = mp.solutions.drawing_styles
 mp_pose = mp.solutions.pose
-
-# TODO - Camera and Video Buttons reset the whole scene but we would like video to remain.
-
 
 def change_filename(filepath, new_filename):
     # Get the directory and extension of the original file
@@ -292,7 +288,7 @@ def main():
         uploaded_file = st.file_uploader("Upload a video file", type=["mp4", "avi", "mov"])
         if (uploaded_file):
             filename, result = save_uploadedfile(uploaded_file, tmpDir)
-            result = convert_to_mp4(filename, "output.mp4")
+            result = convert_to_mp4(filename, "output.mp4", "mpeg4")
             filename = 'output.mp4'
 
             st.write(f"File is: {filename}")
