@@ -201,7 +201,7 @@ def run_streamlit_video_mediapipe_main(filename, min_detection_con=0.5, min_trac
         logging.error("Failed to run streamlit main")
 
 
-def main():    
+def main():
     tmpDir = "/home/james/Projects/mediapipe_demo/MediaPose_Validation_Test/videos/"
     deploy_mode = True
     if(deploy_mode):
@@ -292,6 +292,9 @@ def main():
         uploaded_file = st.file_uploader("Upload a video file", type=["mp4", "avi", "mov"])
         if (uploaded_file):
             filename, result = save_uploadedfile(uploaded_file, tmpDir)
+            result = convert_to_mp4(filename, "output.mp4")
+            filename = 'output.mp4'
+
             st.write(f"File is: {filename}")
             output_file = filename
             if result:
@@ -313,9 +316,9 @@ def main():
 
         img_file_buffer = st.camera_input("Camera")
         if (img_file_buffer):
-            st.write(img_file_buffer)            
+            st.write(img_file_buffer)
             filename, result = save_uploadedfile(img_file_buffer, tmpDir)
-            
+
             st.write(filename)
             if (result):
                 if (deploy_mode):
@@ -344,17 +347,17 @@ def main():
         st.subheader("Analyse a video stream from your camera.")
         st.divider()
         # Select a Camera option
-        webrtc_streamer(key="example", 
-                        video_frame_callback=camera_frame_callback,                        
+        webrtc_streamer(key="example",
+                        video_frame_callback=camera_frame_callback,
                         rtc_configuration={  # Add this line
                             "iceServers": [{"urls": ["stun:stun.l.google.com:19302"]}]
                         })
 
 
 def camera_frame_callback(frame):
-    try:                
+    try:
         img_array = frame.to_ndarray(format="bgr24")
-        img = cv2.cvtColor(img_array, cv2.COLOR_RGB2BGR)                
+        img = cv2.cvtColor(img_array, cv2.COLOR_RGB2BGR)
         image, df = run_camera_analysis(img, False, True, 0.8, 0.8)
     except Exception as e:
         print(e)
