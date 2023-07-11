@@ -182,8 +182,7 @@ def run_streamlit_video_mediapipe_main(filename, min_detection_con=0.5, min_trac
                         pose, image, total_frames, media_noface)
                 else:
                     # Do our version of the pose estimation.
-                    frame = draw_mediapipe_extended(
-                        pose, image, total_frames, False)
+                    frame = draw_mediapipe_extended(pose, image, total_frames, False)
 
                     frame_placeholder.image(image, channels="BGR")
 
@@ -202,9 +201,12 @@ def run_streamlit_video_mediapipe_main(filename, min_detection_con=0.5, min_trac
         logging.error("Failed to run streamlit main")
 
 
-def main():
+def main():    
     tmpDir = "/home/james/Projects/mediapipe_demo/MediaPose_Validation_Test/videos/"
     deploy_mode = True
+    if(deploy_mode):
+        tmpDir = ""
+
     title = st.title("HULC - Physio Mediapipe Project")
 
     ################################################################################
@@ -258,8 +260,7 @@ def main():
 
                 if (result):
                     if (deploy_mode):
-                        file_bytes = np.asarray(
-                            bytearray(uploaded_file.read()), dtype=np.uint8)
+                        file_bytes = np.asarray(bytearray(uploaded_file.read()), dtype=np.uint8)
                         image = cv2.imdecode(file_bytes, 1)
                     else:
                         image = open_image(filename)
@@ -288,16 +289,9 @@ def main():
         st.subheader("Analyse a video file.")
         st.divider()
         # Upload the video and save it
-        uploaded_file = st.file_uploader(
-            "Upload a video file", type=["mp4", "avi", "mov"])
+        uploaded_file = st.file_uploader("Upload a video file", type=["mp4", "avi", "mov"])
         if (uploaded_file):
-            if (deploy_mode):
-                # filename = NamedTemporaryFile(delete=False)
-                # filename.write(uploaded_file.read())
-                filename, result = save_uploadedfile(uploaded_file, "")
-            else:
-                filename, result = save_uploadedfile(uploaded_file, tmpDir)
-
+            filename, result = save_uploadedfile(uploaded_file, tmpDir)
             st.write(f"File is: {filename}")
             output_file = filename
             if result:
@@ -319,12 +313,9 @@ def main():
 
         img_file_buffer = st.camera_input("Camera")
         if (img_file_buffer):
-            st.write(img_file_buffer)
-            if (not deploy_mode):
-                filename, result = save_uploadedfile(img_file_buffer, tmpDir)
-            else:
-                filename, result = save_uploadedfile(img_file_buffer, "")
-
+            st.write(img_file_buffer)            
+            filename, result = save_uploadedfile(img_file_buffer, tmpDir)
+            
             st.write(filename)
             if (result):
                 if (deploy_mode):
