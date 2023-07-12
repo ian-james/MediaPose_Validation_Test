@@ -147,7 +147,7 @@ def run_streamlit_video_mediapipe_main(filename, min_detection_con=0.5, min_trac
                                        media_only=False, media_noface=False):
 
     # Streamlit UI Options.
-    frame_placeholder = st.empty()
+    frame_placeholder = st.empty()    
 
     with st.expander("See Data Table"):
         datatable_placeholder = st.empty()
@@ -163,7 +163,7 @@ def run_streamlit_video_mediapipe_main(filename, min_detection_con=0.5, min_trac
         with FPS() as fps_timer, mp_pose.Pose(min_detection_confidence=min_detection_con, min_tracking_confidence=min_tracking_con) as pose:
             while cap.isOpened():
                 success, image = cap.read()
-                fps_timer.update()
+                fps_timer.update()                
 
                 if not success:
                     if (mode == VideoMode.VIDEO):
@@ -172,7 +172,9 @@ def run_streamlit_video_mediapipe_main(filename, min_detection_con=0.5, min_trac
                     else:
                         logging.info("Ignoring empty camera frame.")
                         continue
-
+                    
+                print(image.shape)
+          
                 total_frames += 1
                 if (media_only):
                     frame = draw_mediapipe(pose, image, total_frames, media_noface)
@@ -180,7 +182,8 @@ def run_streamlit_video_mediapipe_main(filename, min_detection_con=0.5, min_trac
                 else:
                     # Do our version of the pose estimation.
                     frame = draw_mediapipe_extended(pose, image, total_frames, False)                    
-                    frame_placeholder.image(image, channels="BGR", use_column_width=True)                    
+                    frame_placeholder.image(image, channels="BGR", use_column_width=True)                      
+                    
                     
                     df = add_dataframe(df, frame)
                     idf = add_key_columns(idf, frame)
@@ -193,8 +196,8 @@ def run_streamlit_video_mediapipe_main(filename, min_detection_con=0.5, min_trac
                 cap.release()
         return df
 
-    except:
-        logging.error("Failed to run streamlit main")
+    except Exception as e:
+        logging.error(f"Failed to run streamlit main {e}")
 
 
 def main():
@@ -335,6 +338,8 @@ def main():
 
                     original_image, image, df = run_photo_analysis(
                         image, media_only, ignore_face, min_detection_con, min_tracking_con)
+                    
+                    print("IMAGE SAVE",image.shape)
 
                     st.image(image=image, caption="Enhanced Image",
                              channels="BGR")
