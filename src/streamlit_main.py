@@ -149,10 +149,10 @@ def run_streamlit_video_mediapipe_main(filename, min_detection_con=0.5, min_trac
     # Streamlit UI Options.
     frame_placeholder = st.empty()    
 
-    with st.expander("See Data Table"):
-        datatable_placeholder = st.empty()
+    #with st.expander("See Data Table"):
+    #    datatable_placeholder = st.empty()
 
-    fps_text = st.empty()
+    #fps_text = st.empty()
 
     df = None
     idf = None
@@ -171,9 +171,7 @@ def run_streamlit_video_mediapipe_main(filename, min_detection_con=0.5, min_trac
                         break
                     else:
                         logging.info("Ignoring empty camera frame.")
-                        continue
-                    
-                print(image.shape)
+                        continue            
           
                 total_frames += 1
                 if (media_only):
@@ -182,15 +180,14 @@ def run_streamlit_video_mediapipe_main(filename, min_detection_con=0.5, min_trac
                 else:
                     # Do our version of the pose estimation.
                     frame = draw_mediapipe_extended(pose, image, total_frames, False)                    
-                    frame_placeholder.image(image, channels="BGR", use_column_width=True)                      
-                    
+                    frame_placeholder.image(image, channels="BGR", use_column_width=True)
                     
                     df = add_dataframe(df, frame)
                     idf = add_key_columns(idf, frame)
 
-                    fps_text.text(f"FPS: {fps_timer.get_fps()}")
+                    #fps_text.text(f"FPS: {fps_timer.get_fps()}")
 
-                    datatable_placeholder.dataframe(idf, hide_index=True)
+                    # datatable_placeholder.dataframe(idf, hide_index=True)
 
             if (cap):
                 cap.release()
@@ -222,7 +219,7 @@ def main():
     desired_fps = mediapipe_expander.number_input(
         "FPS", min_value=0, max_value=60, value=0, step=1)
 
-    fps_text = st.empty()
+    #fps_text = st.empty()
 
     st.markdown("## Program Options")
     mode_src = st.selectbox(
