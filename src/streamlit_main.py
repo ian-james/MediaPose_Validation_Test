@@ -147,13 +147,7 @@ def run_streamlit_video_mediapipe_main(filename, min_detection_con=0.5, min_trac
                                        media_only=False, media_noface=False):
 
     # Streamlit UI Options.
-    frame_placeholder = st.empty()    
-
-    #with st.expander("See Data Table"):
-    #    datatable_placeholder = st.empty()
-
-    #fps_text = st.empty()
-
+    mediapipe_container = st.empty()
     df = None
     idf = None
     total_frames = 0
@@ -175,20 +169,22 @@ def run_streamlit_video_mediapipe_main(filename, min_detection_con=0.5, min_trac
           
                 total_frames += 1
                 if (media_only):
-                    frame = draw_mediapipe(pose, image, total_frames, media_noface)
-                    frame_placeholder.image(image, channels="BGR",use_column_width=True)
+                    frame = draw_mediapipe(pose, image, total_frames, media_noface)                    
                 else:
                     # Do our version of the pose estimation.
                     frame = draw_mediapipe_extended(pose, image, total_frames, False)                    
-                    frame_placeholder.image(image, channels="BGR", use_column_width=True)
                     
                     df = add_dataframe(df, frame)
                     idf = add_key_columns(idf, frame)
 
-                    #fps_text.text(f"FPS: {fps_timer.get_fps()}")
+                with mediapipe_container.container():
+                    st.image(image, channels="BGR", use_column_width=True)                      
 
-                    # datatable_placeholder.dataframe(idf, hide_index=True)
+                    with st.expander("See Data Table"):
+                        if(idf is not None):
+                            st.dataframe(idf, hide_index=True)                            
 
+                    st.text(f"FPS: {fps_timer.get_fps()}")                    
             if (cap):
                 cap.release()
         return df
@@ -219,7 +215,7 @@ def main():
     desired_fps = mediapipe_expander.number_input(
         "FPS", min_value=0, max_value=60, value=0, step=1)
 
-    #fps_text = st.empty()
+    fps_text = st.empty()
 
     st.markdown("## Program Options")
     mode_src = st.selectbox(
@@ -240,8 +236,7 @@ def main():
         title.title("Image Analysis")
         st.subheader("Analyse a single image.")
         st.divider()
-        uploaded_file = st.file_uploader(
-            "Upload an image file", type=["jpg", "png", "jpeg"])
+        uploaded_file = st.file_uploader("Upload an image file", type=["jpg", "png", "jpeg"])
         if (uploaded_file):
             if uploaded_file is not None:
                 # To read file as bytes:
