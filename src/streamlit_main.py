@@ -176,9 +176,15 @@ def run_streamlit_video_mediapipe_main(filename, min_detection_con=0.5, min_trac
                     
                     df = add_dataframe(df, frame)
                     idf = add_key_columns(idf, frame)
+                    
+                print("TYPE IMAGE", type(image))
+                print("SHAPE = ", image.shape)
 
                 with mediapipe_container.container():
-                    st.image(image, channels="BGR", use_column_width=True)                      
+                    st.image(image, channels="BGR")         
+                    
+                    image_rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+                    st.image(image_rgb)
 
                     with st.expander("See Data Table"):
                         if(idf is not None):
@@ -255,6 +261,9 @@ def main():
                         image = cv2.imdecode(file_bytes, 1)
                     else:
                         image = open_image(filename)
+                        
+                    print("TYPE IMAGE", type(image))
+                    print("SHAPE = ", image.shape)
                     if (image is not None):
                         st.write(
                             f"Min Detection Confidence: {min_detection_con} and Min Tracking Confidence: {min_tracking_con}")
@@ -321,7 +330,7 @@ def main():
             if (result):
                 if (deploy_mode):
                     file_bytes = np.asarray(bytearray(img_file_buffer.read()), dtype=np.uint8)
-                    image = cv2.imdecode(file_bytes, 1)
+                    image = cv2.imdecode(file_bytes, 1)                    
                 else:
                     image = open_image(filename)
 
