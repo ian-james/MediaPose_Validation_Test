@@ -170,15 +170,15 @@ def run_streamlit_video_mediapipe_main(filename, min_detection_con=0.5, min_trac
                         logging.info("Ignoring empty camera frame.")
                         continue
 
-                total_frames += 1
-                if (media_only):
-                    frame = draw_mediapipe(pose, image, total_frames, media_noface)
-                else:
-                    # Do our version of the pose estimation.
-                    frame = draw_mediapipe_extended(pose, image, total_frames, False)
+                # total_frames += 1
+                # if (media_only):
+                #     frame = draw_mediapipe(pose, image, total_frames, media_noface)
+                # else:
+                #     # Do our version of the pose estimation.
+                #     frame = draw_mediapipe_extended(pose, image, total_frames, False)
 
-                    df = add_dataframe(df, frame)
-                    idf = add_key_columns(idf, frame)
+                #     df = add_dataframe(df, frame)
+                #     idf = add_key_columns(idf, frame)
 
                 with mediapipe_container.container():
                     image_rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
@@ -223,7 +223,7 @@ def main():
 
     st.markdown("## Program Options")
     mode_src = st.selectbox(
-        "Select the mode", ['None', 'Camera Capture', 'Camera', 'Video', 'Image'])
+        "Select the mode", ['None', 'Camera Capture', 'Camera', 'Video', 'Image','Watch'])
 
     ################################################################################
     # Debug Options
@@ -235,8 +235,22 @@ def main():
 
     media_only = debug_expander.checkbox("Mediapipe Only", value=False)
     ignore_face = debug_expander.checkbox("Ignore Face", value=False)
+    
+    if(mode_src=='Watch'):
+        title.title("Watch Video")        
+        st.divider()
+        uploaded_file = st.file_uploader("Upload a video file", type=["mp4", "avi", "mov"])
+        if (uploaded_file):
+            filename = save_uploadedfile(uploaded_file, tmpDir)           
+            st.write(f"File is: {filename}")
+            output_file = change_filename(filename, "output")
+            st.write(f"Output File is: {output_file}")
+            if (convert_to_mp4(filename, output_file)):
+                st.video(output_file)
+            else:
+                st.write(f"Video file is not open {output_file}")
 
-    if (mode_src == 'Image'):
+    elif (mode_src == 'Image'):
         title.title("Image Analysis")
         st.subheader("Analyse a single image.")
         st.divider()
