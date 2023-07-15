@@ -169,6 +169,8 @@ def run_streamlit_video_mediapipe_main(filename, min_detection_con=0.5, min_trac
                     else:
                         logging.info("Ignoring empty camera frame.")
                         continue
+                    
+                mediapipe_container.empty()
 
                 total_frames += 1
                 if (media_only):
@@ -179,9 +181,6 @@ def run_streamlit_video_mediapipe_main(filename, min_detection_con=0.5, min_trac
 
                     df = add_dataframe(df, frame)
                     idf = add_key_columns(idf, frame)
-
-                print("TYPE IMAGE", type(image))
-                print("SHAPE = ", image.shape)
 
                 with mediapipe_container.container():
                     image_rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
