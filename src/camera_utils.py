@@ -50,6 +50,7 @@ def setup_video_capture(filename="", fps_rate=30, request_filename = True):
     print("******************",filename,"****************************")
     if (isinstance(filename, int)):
         mode = VideoMode.CAMERA
+        
 
     cap = cv2.VideoCapture(filename)
     if(not cap.isOpened()):
