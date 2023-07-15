@@ -159,30 +159,37 @@ def run_streamlit_video_mediapipe_main(filename, min_detection_con=0.5, min_trac
             filename=filename, fps_rate=fps, request_filename=False)
         with FPS() as fps_timer, mp_pose.Pose(min_detection_confidence=min_detection_con, min_tracking_confidence=min_tracking_con) as pose:
             while cap.isOpened():
-                success, image = cap.read()
+                flag, image = cap.read()
+            
+                if flag:
+                    # The frame is ready and already captured            
+                    pos_frame = cap.get(cv2.CAP_PROP_POS_FRAMES)
+                else:
+                    # The next frame is not ready, so we try to read it again
+                    cap.set(cv2.CAP_PROP_POS_FRAMES, pos_frame-1)
+                    cv2.waitKey(1000)
+                    continue
+                
                 fps_timer.update()
+                
+                if pos_frame == cap.get(cv2.CAP_PROP_FRAME_COUNT):
+                    logging.info("Finished the video.")
+                    break
+                                
+                total_frames += 1
+                if (media_only):
+                    frame = draw_mediapipe(pose, image, total_frames, media_noface)
+                else:
+                    # Do our version of the pose estimation.
+                    frame = draw_mediapipe_extended(pose, image, total_frames, False)
 
-                if not success:
-                    if (mode == VideoMode.VIDEO):
-                        logging.info("Finished the video.")
-                        break
-                    else:
-                        logging.info("Ignoring empty camera frame.")
-                        continue
+                    df = add_dataframe(df, frame)
+                    idf = add_key_columns(idf, frame)
 
-                # total_frames += 1
-                # if (media_only):
-                #     frame = draw_mediapipe(pose, image, total_frames, media_noface)
-                # else:
-                #     # Do our version of the pose estimation.
-                #     frame = draw_mediapipe_extended(pose, image, total_frames, False)
-
-                #     df = add_dataframe(df, frame)
-                #     idf = add_key_columns(idf, frame)
-
-                with mediapipe_container.container():
+                with mediapipe_container.container():                    
                     image_rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
                     st.image(image_rgb)
+                        
 
                     with st.expander("See Data Table"):
                         if(idf is not None):
@@ -296,22 +303,29 @@ def main():
         st.subheader("Analyse a video file.")
         st.divider()
         # Upload the video and save it
+        print("ONE")
         uploaded_file = st.file_uploader("Upload a video file", type=["mp4", "avi", "mov"])
-        if (uploaded_file):
-            filename = save_uploadedfile(uploaded_file, tmpDir)           
-            st.write(f"File is: {filename}")
-            output_file = change_filename(filename, "output")
-            st.write(f"Output File is: {output_file}")
-            if (convert_to_mp4(filename, output_file)):
-                st.write(f"Output file exists {output_file}")
-                df = run_streamlit_video_mediapipe_main(
-                    output_file, min_detection_con, min_tracking_con, desired_fps, media_only, ignore_face)
-                idf = get_key_frames(df)
-                if (df is not None):
-                    st.write(output_file)
-                    display_download_buttons(idf, Path(output_file).stem)
-            else:
-                st.write(f"Video file is not open {output_file}")
+        print("two")
+        try:
+            if (uploaded_file):
+                filename = save_uploadedfile(uploaded_file, tmpDir)           
+                print("THREE")
+                st.write(f"File is: {filename}")
+                output_file = change_filename(filename, "output")
+                st.write(f"Output File is: {output_file}")
+                if (convert_to_mp4(filename, output_file)):
+                    st.write(f"Output file exists {output_file}")
+                    df = run_streamlit_video_mediapipe_main(
+                        output_file, min_detection_con, min_tracking_con, desired_fps, media_only, ignore_face)
+                    idf = get_key_frames(df)
+                    if (df is not None):
+                        st.write(output_file)
+                        display_download_buttons(idf, Path(output_file).stem)
+                else:
+                    st.write(f"Video file is not open {output_file}")
+        except Exception as e:
+            print("IN THE VIDEO MODE")
+            print(e)
 
     elif (mode_src == 'Camera Capture'):
 
@@ -338,9 +352,7 @@ def main():
                     st.write(f"Min Detection Confidence: {min_detection_con} and Min Tracking Confidence: {min_tracking_con}")
 
                     original_image, image, df = run_photo_analysis(
-                        image, media_only, ignore_face, min_detection_con, min_tracking_con)
-
-                    print("IMAGE SAVE",image.shape)
+                        image, media_only, ignore_face, min_detection_con, min_tracking_con)                   
 
                     st.image(image=image, caption="Enhanced Image",
                              channels="BGR")
