@@ -169,8 +169,6 @@ def run_streamlit_video_mediapipe_main(filename, min_detection_con=0.5, min_trac
                     else:
                         logging.info("Ignoring empty camera frame.")
                         continue
-                    
-                mediapipe_container.empty()
 
                 total_frames += 1
                 if (media_only):
