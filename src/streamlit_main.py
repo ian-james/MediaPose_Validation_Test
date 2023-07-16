@@ -154,9 +154,14 @@ def run_streamlit_video_mediapipe_main(filename, min_detection_con=0.5, min_trac
     df = None
     idf = None
     total_frames = 0
+    
+    # Desired frame rate in frames per second (fps)
+    desired_fps = fps if(fps > 0)  else 10    
     try:
         cap, mode, fps, frame_size = setup_video_capture(
-            filename=filename, fps_rate=fps, request_filename=False)
+            filename=filename, fps_rate=0, request_filename=False)
+        
+        pos_frame = cap.get(cv2.CAP_PROP_POS_FRAMES)
         with FPS() as fps_timer, mp_pose.Pose(min_detection_confidence=min_detection_con, min_tracking_confidence=min_tracking_con) as pose:
             while cap.isOpened():
                 flag, image = cap.read()
@@ -188,14 +193,18 @@ def run_streamlit_video_mediapipe_main(filename, min_detection_con=0.5, min_trac
 
                 with mediapipe_container.container():                    
                     image_rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-                    st.image(image_rgb)
-                        
+                    st.image(image_rgb)                        
 
                     with st.expander("See Data Table"):
                         if(idf is not None):
                             st.dataframe(idf, hide_index=True)
 
                     st.text(f"FPS: {fps_timer.get_fps()}")
+                    
+                    # Delay to slow down the frame rate
+                delay = 1 / desired_fps                
+                time.sleep(delay)
+                
             if (cap):
                 cap.release()
         return df
@@ -302,14 +311,11 @@ def main():
         title.title("Video Analysis")
         st.subheader("Analyse a video file.")
         st.divider()
-        # Upload the video and save it
-        print("ONE")
-        uploaded_file = st.file_uploader("Upload a video file", type=["mp4", "avi", "mov"])
-        print("two")
+        # Upload the video and save it        
+        uploaded_file = st.file_uploader("Upload a video file", type=["mp4", "avi", "mov"])        
         try:
             if (uploaded_file):
-                filename = save_uploadedfile(uploaded_file, tmpDir)           
-                print("THREE")
+                filename = save_uploadedfile(uploaded_file, tmpDir)                           
                 st.write(f"File is: {filename}")
                 output_file = change_filename(filename, "output")
                 st.write(f"Output File is: {output_file}")
