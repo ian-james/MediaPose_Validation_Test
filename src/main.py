@@ -116,7 +116,7 @@ def main():
         #filename = "../videos/S02-0302-SL-move kettle-2.MP4"
         #filename = "../videos/S02-0302-O-move kettle.MP4"
         #filename = "../videos/quick_flexion_side_test.mp4"
-        cap, mode, fps_rate, frame_size = setup_video_capture(filename=filename,fps_rate=fps_rate)
+        cap, mode, fps_rate, frame_size = setup_video_capture(filename=filename,fps_rate=fps_rate, request_filename=(filename==""))
         main_cap = VideoCap_Info(cap, fps_rate, frame_size[0], frame_size[1], mode)
 
         logging.info(f"Mode One = {mode}")
